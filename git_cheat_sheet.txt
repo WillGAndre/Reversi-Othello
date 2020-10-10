@@ -1,6 +1,13 @@
 - git add src/foo.c  -> Adding files to local git
-- git commit -m "message" -> Commit changes done to local to get in remote git
+- git commit -m "message" -> Commit changes done to local to remote git
 - git log -> Commit history
 - git clone <URL> -> get repository localy from link
 - git push -> save modifications to remote git
 - git pull -> get most recent version from remote git
+
+	
+	To add changes to remote git do the following steps :	
+
+1. git add (...)
+2. git commit -m "message"
+3. git push
