@@ -1,0 +1,6 @@
+- git add src/foo.c  -> Adding files to local git
+- git commit -m "message" -> Commit changes done to local to get in remote git
+- git log -> Commit history
+- git clone <URL> -> get repository localy from link
+- git push -> save modifications to remote git
+- git pull -> get most recent version from remote git
