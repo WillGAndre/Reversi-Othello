@@ -52,6 +52,36 @@ body {
   width: 35%;
 }
 
+#color {
+  display: flex;
+  flex-direction: column;
+  margin-left: 250px;
+  margin-top: -40px;
+  width: 500px;
+}
+
+.p_color {
+  margin-top: -1px;
+  font-size: small;
+  font-style: italic;
+}
+
+#scr_checkbox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+#scr_button {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-around;
+  margin-top: -15px;
+  margin-left: 250px;
+  margin-right: -230px;
+}
+
 /*-------------------------------------------------------------------------*/
 
 #board {
