@@ -12,10 +12,9 @@ body {
 
 /*-------------------------------------------------------------------------*/
 
-#score {
+.rightS_table {
   display: flex;
   flex-direction: column;
-  align-items: left;
   float: right;
   margin-top: -540px;
   width: 45%;
@@ -23,6 +22,7 @@ body {
   border: 2px solid;
   background-color: rgb(242, 243, 244);
   margin-right: 15px;
+  position: sticky;
 }
 
 .rep_scr {
@@ -45,7 +45,6 @@ body {
 #commands {
   display: flex;
   flex-direction: column;
-  align-items: right;
   margin-left: 160px;
   margin-top: -200px;
   height: 250px;
@@ -84,6 +83,39 @@ body {
 
 /*-------------------------------------------------------------------------*/
 
+#authentication {
+  margin-top: -270px;
+  height: 230px;
+  position: relative;
+}
+
+#autBox {
+  width: 25%;
+  height: 50%;
+  margin-top: 20px;
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+#HOF {
+  position: absolute;
+  text-align: center;
+  width: 60%;
+  height: 85%;
+  display: grid;
+  border: 2px dotted;
+  margin-top: 15px;
+  margin-left: 235px;
+}
+
+#HOF_tb {
+  margin-top: -70px;
+  text-align: center;
+}
+
+/*-------------------------------------------------------------------------*/
+
 #board {
   display: grid;
   grid-template-columns: 89px 89px 89px 89px 89px 89px 89px 89px;
@@ -94,6 +126,7 @@ body {
   width: 50%;
   height: 500px;
   margin-left: 15px;
+  position: sticky;
 }
 
 .cell {

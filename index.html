@@ -85,7 +85,7 @@
       <div class="cell"></div>
     </div>
     <br><br>
-    <div id="score">
+    <div id="score" class="rightS_table">
       <div class="rep_scr">0</div><p class="p_scr">Player 1 score</p>
       <div class="rep_scr">0</div><p class="p_scr">Player 2 score</p>
       <div id="commands">
@@ -100,10 +100,62 @@
         </div>
         <div id="scr_button">
         <input type="button" value="Restart!">
-        <input type="button" value="Instructions">
+        <input type="button" value="Instructions" onclick="onButtonInstructionsClick()">
         <input type="button" value="Credits">
         </div>
       </div>
     </div>
+    <div id="authentication" class="rightS_table">
+      <div id="autBox">
+        <form action="submit" method="post">
+          <u><i>Authentication:</i></u><br><br>
+          <i>Name:</i><input type="text"><br><br>
+          <i>Password:</i><input type="password"><br><br>
+          <input type="submit">
+          <input type="reset">
+        </form>
+      </div>
+      <div id="HOF">
+        <u><i>Hall of Fame:</i></u>
+        <table id="HOF_tb">
+          <tr>
+            <th>User</th>
+            <th>Score</th>
+            <th>Date</th>
+          </tr>
+          <tr>
+            <td>test1</td>
+            <td>20000</td>
+            <td>16/10/00</td>
+          </tr>
+          <tr>
+            <td>test2</td>
+            <td>50000</td>
+            <td>17/10/20</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div id="instructions">
+      <h1>Othello/Reversi Instructions</h1>
+      <ul>
+        <li>
+          In Othello, the two colours are Black and White and Black always plays first
+        </li>
+        <li>
+          The four squares in the middle of the board start with four counters already placed - white top left and bottom right; black top right and bottom left.
+        </li>
+        <li>
+          Each piece played must be laid adjacent to an opponent's piece so that the opponent's piece or a row of opponent's pieces is flanked by the new piece and another piece of the player's colour. All of the opponent's pieces between these two pieces are 'captured' and turned over to match the player's colour.
+        </li>
+        <li>
+          It can happen that a piece is played so that pieces or rows of pieces in more than one direction are trapped between the new piece played and other pieces of the same colour. In this case, all the pieces in all viable directions are turned over.
+        </li>
+        <li>
+          A player without a move simply passes, and the other player keeps playing pieces until the first player can make a move again.
+        </li>
+      </ul>
+    </div>
+    <script src="index.js"></script>
   </body>
 </html>
