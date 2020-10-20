@@ -161,3 +161,15 @@ body {
   margin-right: 25px;
   margin-bottom: 5px;
 }
+
+.dotplace {
+  height: 50px;
+  width: 50px;
+  background-color: rgb(105,105,105);
+  border-radius: 50%;
+  display: inline-block;
+  margin-top: 5px;
+  margin-left: 19.5px;
+  margin-right: 25px;
+  margin-bottom: 5px;
+}

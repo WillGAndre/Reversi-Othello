@@ -7,13 +7,36 @@ onButtonInstructionsClick = function(oEvent) {
 }
 
 window.onload = function() {
-  const counter = new Reversi("base");
+  const gameboard = new Reversi("base");
+  const pl_1 = new Player("black");
+  const pl_2 = new Player("white");
+  const counter_p1 = document.getElementById("scr_p1");
+  const counter_p2 = document.getElementById("scr_p2");
+  counter_p1.innerHTML = 2; counter_p2.innerHTML = 2;     //  init score
+  validate_position(pl_1.ply_color,gameboard.data_dots);
+  /*
+  const game_board = document.getElementById("base");
+  let x;
+  let y;
+  game_board.addEventListener("click",function(event) {
+  },true); */
+}
+
+class Player {
+  constructor(color) {
+    this.color = color;
+    this.score = 2;
+  }
+
+  get ply_color() {
+    return this.color;
+  }
 }
 
 class Reversi {
   constructor(id) {
-    this.content = new Array(64);
-    this.board   = new Array(64);
+    this.cells   = new Array(64);   // Contem Cell
+    this.dots    = new Array(64);   // Contem Dots
     this.color   = "black";
 
     const parent = document.getElementById(id);
@@ -22,6 +45,7 @@ class Reversi {
     board.className = "board";
     parent.appendChild(board);
 
+    let fn = this.play.bind(this);
     for(let i = 0; i < 64; i++) {
       let cell  = document.createElement("div");
       let dot   = document.createElement("div");
@@ -35,17 +59,97 @@ class Reversi {
       }
       cell.appendChild(dot);
 
-      cell.onclick = ((fun,pos) => {
+      cell.onclick = ((fun,pos) => {    // Função anonima que é criado 64 vezes
               return () => fun(pos);
-      })(this.play.bind(this),i);
+      })(fn,i);
 
-      this.board[i] = cell;
+      this.cells[i] = cell;
+      this.dots[i]  = dot;
     }
   }
-  
+
   play(pos) {
-    let dot = this.board[pos];
+    let dot = this.dots[pos];
     this.color == "black" ?
     (this.color="white",dot.className="dotp1") : (this.color="black",dot.className="dotp2");
   }
+
+  get data_dots() {
+    return this.dots;
+  }
+}
+
+function validate_position(color_pl,board) {
+  let enemy,friendly;
+  color_pl == "black" ? (enemy="dotp2",friendly="dotp1") : (enemy="dotp1",friendly="dotp2")
+
+  for (let pos = 0; pos < 64; pos++) {
+
+    if (pos != 27 && pos != 36 && pos != 28 && pos != 35) {
+
+      for (let i = 7; i < 10; i++) {
+        let adj_pos_upper = pos-i;
+        let adj_pos_lower = pos+i;
+        if (adj_pos_upper >= 0 && board[adj_pos_upper].className == enemy && valid_pos_upper(board,friendly,adj_pos_upper,i) == true) {
+          let dot = board[pos];
+          dot.className = "dotplace";
+        }
+        if (adj_pos_lower < 64 && board[adj_pos_lower].className == enemy && valid_pos_lower(board,friendly,adj_pos_lower,i) == true) {
+          let dot = board[pos];
+          dot.className = "dotplace";
+        }
+      }
+
+      let nxt_pos = pos+1;
+      let lst_pos = pos-1;
+      if (nxt_pos < 64 && board[nxt_pos].className == enemy && valid_pos_nxt(board,friendly,nxt_pos) == true) {
+        let dot = board[pos];
+        dot.className = "dotplace";
+      }
+      if (lst_pos >= 0 && board[lst_pos].className == enemy && valid_pos_lst(board,friendly,lst_pos) == true) {
+        let dot = board[pos];
+        dot.className = "dotplace";
+      }
+    }
+  }
+}
+
+function valid_pos_upper(board,friendly,pos,i) {
+  let flag_found = false;
+  pos -= i;
+  while (pos >= 0) {
+    if (board[pos].className == friendly) {flag_found = true; break;}
+    pos -= i;
+  }
+  return flag_found;
+}
+
+function valid_pos_lower(board,friendly,pos,i) {
+  let flag_found = false;
+  pos += i;
+  while (pos < 64) {
+    if (board[pos].className == friendly) {flag_found = true; break;}
+    pos += i;
+  }
+  return flag_found;
+}
+
+function valid_pos_nxt(board,friendly,pos) {
+  let flag_found = false;
+  pos += 1;
+  while ((pos+1) % 8 != 0) {
+    if (board[pos].className == friendly) {flag_found = true; break;}
+    pos += 1;
+  }
+  return flag_found;
+}
+
+function valid_pos_lst(board,friendly,pos) {
+  let flag_found = false;
+  pos -= 1;
+  while (pos % 8 != 0) {
+    if (board[pos].className == friendly) {flag_found = true; break;}
+    pos -= 1;
+  }
+  return flag_found;
 }
