@@ -116,11 +116,11 @@ body {
 
 /*-------------------------------------------------------------------------*/
 
-#board {
+.board {
   display: grid;
   grid-template-columns: 89px 89px 89px 89px 89px 89px 89px 89px;
   grid-template-rows: 63px 63px 63px 63px 63px 63px 63px 58px;
-  background-color: rgb(46, 99, 28);
+  background-color: rgb(111, 151, 97);/*rgb(46, 99, 28);*/
   border-width: 2px;
   border-style: dashed;
   width: 50%;
@@ -130,9 +130,11 @@ body {
 }
 
 .cell {
-  display: flex;
-  justify-content: center;
-  background-color: rgba(111, 151, 97, 0.6);
+  cursor: pointer;
+  /*display: flex;
+  justify-content: center;*/
+  text-align: center;
+  background-color: rgb(111, 151, 97);
   border: 1px solid;
 }
 
@@ -141,10 +143,21 @@ body {
   width: 50px;
   background-color: rgb(0,0,0);
   border-radius: 50%;
-  display: inline-block;
+  /*display: inline-block;*/
   margin-top: 5px;
+  margin-left: 19.5px;
+  margin-right: 25px;
+  margin-bottom: 5px;
 }
 
 .dotp2 {
+  height: 50px;
+  width: 50px;
   background-color: rgb(248, 255, 246);
+  border-radius: 50%;
+  display: inline-block;
+  margin-top: 5px;
+  margin-left: 19.5px;
+  margin-right: 25px;
+  margin-bottom: 5px;
 }
