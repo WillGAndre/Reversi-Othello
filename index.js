@@ -143,6 +143,7 @@ function validate_position(friendly,board,candidate_moves) {
   friendly == "dotp1" ? (enemy="dotp2") : (enemy="dotp1")
 
   for (let pos = 0; pos < 64; pos++) {
+    let current_line = Math.floor(pos/8);
 
     if (pos != 27 && pos != 36 && pos != 28 && pos != 35) {
 
@@ -167,14 +168,16 @@ function validate_position(friendly,board,candidate_moves) {
 
       let nxt_pos = pos+1;
       let lst_pos = pos-1;
-      if (nxt_pos < 64 && board[nxt_pos].className == enemy && valid_pos_nxt(board,friendly,nxt_pos) == true) {
+      let next_line = Math.floor(nxt_pos/8);
+      let prev_line = Math.floor(lst_pos/8);
+      if (next_line == current_line && nxt_pos < 64 && board[nxt_pos].className == enemy && valid_pos_nxt(board,friendly,nxt_pos) == true) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
           candidate_moves.push(pos);
         }
       }
-      if (lst_pos >= 0 && board[lst_pos].className == enemy && valid_pos_lst(board,friendly,lst_pos) == true) {
+      if (prev_line == current_line && lst_pos >= 0 && board[lst_pos].className == enemy && valid_pos_lst(board,friendly,lst_pos) == true) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
