@@ -196,6 +196,7 @@ function valid_pos_upper(board,friendly,pos,i) {
   pos -= i;
   while (pos >= 0 && flag_found != true) {
     if (board[pos].className == friendly) {flag_found = true; break;}
+    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos -= i;
   }
   return flag_found;
@@ -206,6 +207,7 @@ function valid_pos_lower(board,friendly,pos,i) {
   pos += i;
   while (pos < 64 && flag_found != true) {
     if (board[pos].className == friendly) {flag_found = true;}
+    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos += i;
   }
   return flag_found;
@@ -216,6 +218,7 @@ function valid_pos_nxt(board,friendly,pos) {
   pos += 1;
   while ((pos+1) % 8 != 0 && flag_found != true) {
     if (board[pos].className == friendly) {flag_found = true; break;}
+    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos += 1;
   }
   return flag_found;
@@ -226,6 +229,7 @@ function valid_pos_lst(board,friendly,pos) {
   pos -= 1;
   while (pos % 8 != 0 && flag_found != true) {
     if (board[pos].className == friendly) {flag_found = true; break;}
+    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos -= 1;
   }
   return flag_found;
