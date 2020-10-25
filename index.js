@@ -68,10 +68,10 @@ function get_array_dots(cells) {
 }
 
 function clear_board(gray_dots) {
-  for (let i = 0; i < gray_dots.length; i++) {
-    gray_dots[i].classList.remove("dotplace");
+  while (gray_dots.length > 0) {
+    gray_dots[0].classList.remove("dotplace");
   }
-  gray_dots[0].classList.remove("dotplace");      // (???)
+  //gray_dots[0].classList.remove("dotplace");      // (???)
   gray_dots.clear;
 }
 
