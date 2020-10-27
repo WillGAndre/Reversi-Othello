@@ -6,17 +6,6 @@ onButtonInstructionsClick = function(oEvent) {
   instructionsDiv.hidden = !instructionsDiv.hidden;
 }
 
-let lookup_line = new Map();
-let line_count = 1;
-let flg = false;
-for (let i = 0; i < 64; i++) {
-  if (i >= 8) {flag = true;}
-  if (flg && (i%8) == 0) {
-    line_count++;
-  }
-  lookup_line.set(i, line_count);
-}
-
 const counter_p1 = document.getElementById("scr_p1");     // Score player 1
 const counter_p2 = document.getElementById("scr_p2");     // Score player 2
 //let end_p1 = false;                                       // Player 1 cant play if flag==true
@@ -26,17 +15,19 @@ let player_counter = 1;                                   // Player counter to c
 let curr_player_dot = "dotp1";
 
 /*
-  Fix bug where validation overlaps with gray dots (!!!!)
-  1. Check diagonals
+  Add feature where after alert , restart and save score of winning player
 */
 
 window.onload = function() {
-  let candidate_moves = new Array(64);
   const gameboard = new Reversi("base");
+  let lookup_line = new Map();
+  create_lookupLine(lookup_line);
   counter_p1.innerHTML = 2;                  //  init score
   counter_p2.innerHTML = 2;
+  let pass_p1 = false;
+  let pass_p2 = false;
 
-  validate_position(curr_player_dot,gameboard.data_dots,candidate_moves);
+  validate_position(curr_player_dot,gameboard.data_dots,lookup_line);
 
   let cells = document.getElementsByClassName("cell");
   let candidate_dots  = document.getElementsByClassName("dotplace");
@@ -51,7 +42,7 @@ window.onload = function() {
           }
         }
         // debugger;
-        if (index >= 0) {
+        if (index >= 0 && !pass_p1) {
           let cell = candidate_dots[index].parentElement;
 
           let arr_dots = get_array_dots(cells);
@@ -59,19 +50,43 @@ window.onload = function() {
           flip_enemy(gameboard.data_dots, index_dot, curr_player_dot);
           clear_board(candidate_dots);
           player_counter++;
-
-          player_counter % 2 == 0 ? curr_player_dot="dotp2" : curr_player_dot="dotp1"
-          validate_position(curr_player_dot,gameboard.data_dots,candidate_moves);
-          // if (end_p1 && end_p2) { // end game
-          // return;
-          // }
+        } else if (pass_p1) {
+          player_counter++;
+          clear_board(candidate_dots);
         }
-        player2_move(gameboard.data_dots,candidate_dots,candidate_moves);
 
         player_counter % 2 == 0 ? curr_player_dot="dotp2" : curr_player_dot="dotp1"
-        validate_position(curr_player_dot,gameboard.data_dots,candidate_moves);
+        validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p2 = true : pass_p2 = false
+
+        check_win(gameboard.data_dots,pass_p1,pass_p2);
+
+        if (!pass_p2) {
+          player2_move(gameboard.data_dots,candidate_dots);
+        } else {
+          player_counter++;
+          clear_board(candidate_dots);
+        }
+
+        player_counter % 2 == 0 ? curr_player_dot="dotp2" : curr_player_dot="dotp1"
+        validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
+
+        check_win(gameboard.data_dots,pass_p1,pass_p2);
       }
     }
+}
+
+// Hard coded
+function create_lookupLine(lookup_line) {
+  for (let i = 0; i < 64; i++) {
+    if(i>=0&&i<=7)  {lookup_line.set(i, 1);}
+    if(i>7&&i<=15)  {lookup_line.set(i, 2);}
+    if(i>15&&i<=23) {lookup_line.set(i, 3);}
+    if(i>23&&i<=31) {lookup_line.set(i, 4);}
+    if(i>31&&i<=39) {lookup_line.set(i, 5);}
+    if(i>39&&i<=47) {lookup_line.set(i, 6);}
+    if(i>47&&i<=55) {lookup_line.set(i, 7);}
+    if(i>55&&i<=63) {lookup_line.set(i, 8);}
+  }
 }
 
 function get_array_dots(cells) {
@@ -156,7 +171,7 @@ class Reversi {
 
 /*-------------------------------------------------------------------------*/
 
-function player2_move(board,candidate_dots,candidate_moves) {
+function player2_move(board,candidate_dots) {
   let random_dot = candidate_dots[Math.floor(Math.random() * candidate_dots.length)];
   let cell = random_dot.parentElement;
   let pos = parseInt(cell.id);
@@ -167,35 +182,57 @@ function player2_move(board,candidate_dots,candidate_moves) {
   player_counter++;
 }
 
+function check_win(board,end_p1,end_p2) {
+  if ((end_p1 && end_p2) || check_board_full(board)) {
+    if (counter_p1.innerHTML >= counter_p2.innerHTML) {
+      alert("Game over, Player 1 wins");
+    } else {alert("Game over, Player 2 wins");}
+  } else {
+    end_p1 = true;
+    end_p2 = true;
+  }
+}
+
+function check_board_full(board) {
+  let flg = true;
+  for (let i = 0; i < 63; i++) {
+    if (board[i].className != "dotp1" && board[i].className != "dotp2") {
+      flg = false; break;
+    }
+  }
+  return flg;
+}
+
 /*-------------------------------------------------------------------------*/
 
-function validate_position(friendly,board,candidate_moves) {
+function validate_position(friendly,board,lookup_line) {
   let num_gray_dots = 0;
   let enemy;
   friendly == "dotp1" ? (enemy="dotp2") : (enemy="dotp1")
 
   for (let pos = 0; pos < 64; pos++) {
-    //let current_line = Math.floor(pos/8);
     let current_line = lookup_line.get(pos);
 
     if (pos != 27 && pos != 36 && pos != 28 && pos != 35) {
 
       for (let i = 7; i < 10; i++) {
         let adj_pos_upper = pos-i;
+        let adj_line_upper = lookup_line.get(adj_pos_upper);
         let adj_pos_lower = pos+i;
-        if (adj_pos_upper >= 0 && board[adj_pos_upper].className == enemy && valid_pos_upper(board,friendly,adj_pos_upper,i) == true) {
+        let adj_line_lower = lookup_line.get(adj_pos_lower);
+        if (adj_pos_upper >= 0 && adj_line_upper == current_line-1 && board[adj_pos_upper].className == enemy && valid_pos_upper(board,friendly,adj_pos_upper,i) == true) {
           let dot = board[pos];
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
-            candidate_moves.push(pos);
+            //candidate_moves.push(pos);
             num_gray_dots++;
           }
         }
-        if (adj_pos_lower < 64 && board[adj_pos_lower].className == enemy && valid_pos_lower(board,friendly,adj_pos_lower,i) == true) {
+        if (adj_pos_lower < 64 && adj_line_lower == current_line+1 && board[adj_pos_lower].className == enemy && valid_pos_lower(board,friendly,adj_pos_lower,i) == true) {
           let dot = board[pos];
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
-            candidate_moves.push(pos);
+            //candidate_moves.push(pos);
             num_gray_dots++;
           }
         }
@@ -207,7 +244,7 @@ function validate_position(friendly,board,candidate_moves) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
-          candidate_moves.push(pos);
+          //candidate_moves.push(pos);
           num_gray_dots++;
         }
       }
@@ -218,25 +255,19 @@ function validate_position(friendly,board,candidate_moves) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
-          candidate_moves.push(pos);
+          //candidate_moves.push(pos);
           num_gray_dots++;
         }
       }
     }
   }
-
-  // if (candidate_moves.length == 0 && friendly == "dotp1") {
-  //   end_p1 = true;
-  // } else if (candidate_moves.length == 0 && friendly == "dotp2") {
-  //   end_p2 = true;
-  // }
   return num_gray_dots;
 }
 
 function valid_pos_upper(board,friendly,pos,i) {
   let flag_found = false;
   pos -= i;
-  while (pos >= 0 && flag_found != true) {
+  while (pos >= 0) {
     if (board[pos].className == friendly) {flag_found = true; break;}
     if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos -= i;
@@ -247,8 +278,8 @@ function valid_pos_upper(board,friendly,pos,i) {
 function valid_pos_lower(board,friendly,pos,i) {
   let flag_found = false;
   pos += i;
-  while (pos < 64 && flag_found != true) {
-    if (board[pos].className == friendly) {flag_found = true;}
+  while (pos < 64) {
+    if (board[pos].className == friendly) {flag_found = true; break;}
     if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos += i;
   }
@@ -258,7 +289,7 @@ function valid_pos_lower(board,friendly,pos,i) {
 function valid_pos_nxt(board,friendly,pos) {
   let flag_found = false;
   pos += 1;
-  while ((pos+1) % 8 != 0 && flag_found != true) {
+  while ((pos+1) % 8 != 0 && board[pos] != undefined) {
     if (board[pos].className == friendly) {flag_found = true; break;}
     if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos += 1;
@@ -269,7 +300,7 @@ function valid_pos_nxt(board,friendly,pos) {
 function valid_pos_lst(board,friendly,pos) {
   let flag_found = false;
   pos -= 1;
-  while (pos % 8 != 0 && flag_found != true) {
+  while (pos % 8 != 0 && board[pos] != undefined) {
     if (board[pos].className == friendly) {flag_found = true; break;}
     if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos -= 1;
