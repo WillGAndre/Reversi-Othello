@@ -6,6 +6,17 @@ onButtonInstructionsClick = function(oEvent) {
   instructionsDiv.hidden = !instructionsDiv.hidden;
 }
 
+let lookup_line = new Map();
+let line_count = 1;
+let flg = false;
+for (let i = 0; i < 64; i++) {
+  if (i >= 8) {flag = true;}
+  if (flg && (i%8) == 0) {
+    line_count++;
+  }
+  lookup_line.set(i, line_count);
+}
+
 const counter_p1 = document.getElementById("scr_p1");     // Score player 1
 const counter_p2 = document.getElementById("scr_p2");     // Score player 2
 //let end_p1 = false;                                       // Player 1 cant play if flag==true
@@ -13,6 +24,11 @@ const counter_p2 = document.getElementById("scr_p2");     // Score player 2
 let player_counter = 1;                                   // Player counter to control game flow
 
 let curr_player_dot = "dotp1";
+
+/*
+  Fix bug where validation overlaps with gray dots (!!!!)
+  1. Check diagonals
+*/
 
 window.onload = function() {
   let candidate_moves = new Array(64);
@@ -50,6 +66,10 @@ window.onload = function() {
           // return;
           // }
         }
+        player2_move(gameboard.data_dots,candidate_dots,candidate_moves);
+
+        player_counter % 2 == 0 ? curr_player_dot="dotp2" : curr_player_dot="dotp1"
+        validate_position(curr_player_dot,gameboard.data_dots,candidate_moves);
       }
     }
 }
@@ -71,7 +91,6 @@ function clear_board(gray_dots) {
   while (gray_dots.length > 0) {
     gray_dots[0].classList.remove("dotplace");
   }
-  //gray_dots[0].classList.remove("dotplace");      // (???)
   gray_dots.clear;
 }
 
@@ -135,15 +154,29 @@ class Reversi {
   }
 }
 
+/*-------------------------------------------------------------------------*/
+
+function player2_move(board,candidate_dots,candidate_moves) {
+  let random_dot = candidate_dots[Math.floor(Math.random() * candidate_dots.length)];
+  let cell = random_dot.parentElement;
+  let pos = parseInt(cell.id);
+
+  board[pos].className = curr_player_dot;
+  flip_enemy(board,pos,curr_player_dot);
+  clear_board(candidate_dots);
+  player_counter++;
+}
 
 /*-------------------------------------------------------------------------*/
 
 function validate_position(friendly,board,candidate_moves) {
+  let num_gray_dots = 0;
   let enemy;
   friendly == "dotp1" ? (enemy="dotp2") : (enemy="dotp1")
 
   for (let pos = 0; pos < 64; pos++) {
-    let current_line = Math.floor(pos/8);
+    //let current_line = Math.floor(pos/8);
+    let current_line = lookup_line.get(pos);
 
     if (pos != 27 && pos != 36 && pos != 28 && pos != 35) {
 
@@ -155,6 +188,7 @@ function validate_position(friendly,board,candidate_moves) {
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
             candidate_moves.push(pos);
+            num_gray_dots++;
           }
         }
         if (adj_pos_lower < 64 && board[adj_pos_lower].className == enemy && valid_pos_lower(board,friendly,adj_pos_lower,i) == true) {
@@ -162,26 +196,30 @@ function validate_position(friendly,board,candidate_moves) {
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
             candidate_moves.push(pos);
+            num_gray_dots++;
           }
         }
       }
 
       let nxt_pos = pos+1;
-      let lst_pos = pos-1;
-      let next_line = Math.floor(nxt_pos/8);
-      let prev_line = Math.floor(lst_pos/8);
+      let next_line = lookup_line.get(nxt_pos);
       if (next_line == current_line && nxt_pos < 64 && board[nxt_pos].className == enemy && valid_pos_nxt(board,friendly,nxt_pos) == true) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
           candidate_moves.push(pos);
+          num_gray_dots++;
         }
       }
+
+      let lst_pos = pos-1;
+      let prev_line = lookup_line.get(lst_pos);
       if (prev_line == current_line && lst_pos >= 0 && board[lst_pos].className == enemy && valid_pos_lst(board,friendly,lst_pos) == true) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
           candidate_moves.push(pos);
+          num_gray_dots++;
         }
       }
     }
@@ -192,6 +230,7 @@ function validate_position(friendly,board,candidate_moves) {
   // } else if (candidate_moves.length == 0 && friendly == "dotp2") {
   //   end_p2 = true;
   // }
+  return num_gray_dots;
 }
 
 function valid_pos_upper(board,friendly,pos,i) {
