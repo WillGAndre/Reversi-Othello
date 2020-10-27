@@ -16,6 +16,7 @@ let curr_player_dot = "dotp1";
 
 /*
   Add feature where after alert , restart and save score of winning player
+  Convert css px values to % 
 */
 
 window.onload = function() {
