@@ -43,39 +43,41 @@ window.onload = function() {
 
     for (let i = 0; i < cells.length; i++) {
       cells[i].onclick = function() {
-        let index = -1;
-        for (let j = 0; j < candidate_dots.length; j++) {
-          if (candidate_dots[j].parentElement.id == cells[i].id) {
-            index = j;
-            break;
+        if (cells[i].firstElementChild.className == "dotplace") {
+          let index = -1;
+          for (let j = 0; j < candidate_dots.length; j++) {
+            if (candidate_dots[j].parentElement.id == cells[i].id) {
+              index = j;
+              break;
+            }
           }
+          if (index >= 0 && !pass_p1) {
+            let cell = candidate_dots[index].parentElement;
+
+            let arr_dots = get_array_dots(cells);
+            let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
+            flip_enemy(gameboard.data_dots, index_dot, curr_player_dot);
+            clear_board(candidate_dots);
+            player_counter++;
+          } else if (pass_p1) {
+            player_counter++;
+            clear_board(candidate_dots);
+          }
+
+          player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
+          validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p2 = true : pass_p2 = false
+          check_win(gameboard.data_dots,pass_p1,pass_p2);
+
+          if (!pass_p2) {
+            player2_move(gameboard.data_dots,candidate_dots);
+          } else {
+            player_counter++;
+            clear_board(candidate_dots);
+          }
+
+          validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
+          check_win(gameboard.data_dots,pass_p1,pass_p2);
         }
-        if (index >= 0 && !pass_p1) {
-          let cell = candidate_dots[index].parentElement;
-
-          let arr_dots = get_array_dots(cells);
-          let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
-          flip_enemy(gameboard.data_dots, index_dot, curr_player_dot);
-          clear_board(candidate_dots);
-          player_counter++;
-        } else if (pass_p1) {
-          player_counter++;
-          clear_board(candidate_dots);
-        }
-
-        player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
-        validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p2 = true : pass_p2 = false
-        check_win(gameboard.data_dots,pass_p1,pass_p2);
-
-        if (!pass_p2) {
-          player2_move(gameboard.data_dots,candidate_dots);
-        } else {
-          player_counter++;
-          clear_board(candidate_dots);
-        }
-
-        validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
-        check_win(gameboard.data_dots,pass_p1,pass_p2);
       }
     }
 }
@@ -369,3 +371,15 @@ function flip_lst(board, friendly, enemy, pos, score) {
 }
 
 /*----------------------------------------------------------------------------*/
+
+/*
+for (let i = 0; i < cells.length; i++) {
+  cells[i].onclick = function() {
+    let index = -1;
+    for (let j = 0; j < candidate_dots.length; j++) {
+      if (candidate_dots[j].parentElement.id == cells[i].id) {
+        index = j;
+        break;
+      }
+    }
+*/

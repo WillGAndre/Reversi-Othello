@@ -51,7 +51,7 @@ body {
 .p_scr {
   font-style: italic;
   margin-top: 1.25em;
-  margin-left: 1.875em;
+  margin-left: 2.5em;
 }
 
 #commands {
@@ -169,7 +169,6 @@ body {
 .cell {
   display: flex;
   justify-content: center;
-  cursor: pointer;
   background-color: rgb(111, 151, 97);
   border: 0.0625em solid;
 }
@@ -194,6 +193,7 @@ body {
 }
 
 .dotplace {
+  cursor: pointer;
   height: 3.125em;
   width: 3.125em;
   background-color: rgb(105,105,105);
