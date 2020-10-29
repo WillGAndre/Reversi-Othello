@@ -6,17 +6,18 @@ onButtonInstructionsClick = function(oEvent) {
   instructionsDiv.hidden = !instructionsDiv.hidden;
 }
 
-const counter_p1 = document.getElementById("scr_p1");     // Score player 1
-const counter_p2 = document.getElementById("scr_p2");     // Score player 2
-//let end_p1 = false;                                       // Player 1 cant play if flag==true
-//let end_p2 = false;                                       //  ||    2  ||   ||  ||  ||    ||    => If both true , game over!
-let player_counter = 1;                                   // Player counter to control game flow
+
+const player_color = document.getElementById("color_checkbox");
+const current_pl = document.getElementById("rep_player");         // Represent who is playing
+const counter_p1 = document.getElementById("scr_p1");             // Score player 1
+const counter_p2 = document.getElementById("scr_p2");             // Score player 2
+let player_counter = 1;                                           // Player counter to control game flow
 
 let curr_player_dot = "dotp1";
 
 /*
   Add feature where after alert , restart and save score of winning player
-  Convert css px values to % 
+  Convert css px values to %
 */
 
 window.onload = function() {
@@ -33,6 +34,13 @@ window.onload = function() {
   let cells = document.getElementsByClassName("cell");
   let candidate_dots  = document.getElementsByClassName("dotplace");
 
+  player_color.addEventListener("input", function() {
+    if (!player_color.checked) {
+      player2_move(gameboard.data_dots,candidate_dots);
+      validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
+    }
+  }, "false");
+
     for (let i = 0; i < cells.length; i++) {
       cells[i].onclick = function() {
         let index = -1;
@@ -42,7 +50,6 @@ window.onload = function() {
             break;
           }
         }
-        // debugger;
         if (index >= 0 && !pass_p1) {
           let cell = candidate_dots[index].parentElement;
 
@@ -56,9 +63,8 @@ window.onload = function() {
           clear_board(candidate_dots);
         }
 
-        player_counter % 2 == 0 ? curr_player_dot="dotp2" : curr_player_dot="dotp1"
+        player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
         validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p2 = true : pass_p2 = false
-
         check_win(gameboard.data_dots,pass_p1,pass_p2);
 
         if (!pass_p2) {
@@ -68,15 +74,12 @@ window.onload = function() {
           clear_board(candidate_dots);
         }
 
-        player_counter % 2 == 0 ? curr_player_dot="dotp2" : curr_player_dot="dotp1"
         validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
-
         check_win(gameboard.data_dots,pass_p1,pass_p2);
       }
     }
 }
 
-// Hard coded
 function create_lookupLine(lookup_line) {
   for (let i = 0; i < 64; i++) {
     if(i>=0&&i<=7)  {lookup_line.set(i, 1);}
@@ -110,17 +113,6 @@ function clear_board(gray_dots) {
   gray_dots.clear;
 }
 
-class Player {
-  constructor(color) {
-    this.color = color;
-    this.score = 2;
-  }
-
-  get ply_color() {
-    return this.color;
-  }
-}
-
 class Reversi {
   constructor(id) {
     this.cells       = new Array(64);   // Contem Cell
@@ -148,12 +140,6 @@ class Reversi {
       }
       cell.appendChild(dot);
 
-
-      // cell.onclick = ((fun,pos) => {    // Função anonima que é criado 64 vezes
-      //         return () => fun(pos);
-      // })(fn,i);
-
-
       this.cells[i] = cell;
       this.dots[i]  = dot;
     }
@@ -170,7 +156,7 @@ class Reversi {
   }
 }
 
-/*-------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 
 function player2_move(board,candidate_dots) {
   let random_dot = candidate_dots[Math.floor(Math.random() * candidate_dots.length)];
@@ -181,17 +167,21 @@ function player2_move(board,candidate_dots) {
   flip_enemy(board,pos,curr_player_dot);
   clear_board(candidate_dots);
   player_counter++;
+  player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
 }
 
 function check_win(board,end_p1,end_p2) {
   if ((end_p1 && end_p2) || check_board_full(board)) {
-    if (counter_p1.innerHTML >= counter_p2.innerHTML) {
-      alert("Game over, Player 1 wins");
-    } else {alert("Game over, Player 2 wins");}
+    if (counter_p1.innerHTML > counter_p2.innerHTML) {
+      alert("Game over, Black wins");
+    } else if (counter_p1.innerHTML < counter_p2.innerHTML) {
+      alert("Game over, White wins");
+    } else {alert("Tie!");}
   } else {
     end_p1 = true;
     end_p2 = true;
   }
+  return;
 }
 
 function check_board_full(board) {
@@ -204,7 +194,7 @@ function check_board_full(board) {
   return flg;
 }
 
-/*-------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 
 function validate_position(friendly,board,lookup_line) {
   let num_gray_dots = 0;
@@ -290,7 +280,7 @@ function valid_pos_lower(board,friendly,pos,i) {
 function valid_pos_nxt(board,friendly,pos) {
   let flag_found = false;
   pos += 1;
-  while ((pos+1) % 8 != 0 && board[pos] != undefined) {
+  while (pos % 8 != 0 && board[pos] != undefined) { // (pos+1) % 8 != 0
     if (board[pos].className == friendly) {flag_found = true; break;}
     if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
     pos += 1;
@@ -309,7 +299,7 @@ function valid_pos_lst(board,friendly,pos) {
   return flag_found;
 }
 
-/*-------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/
 
 function flip_enemy(board, pos, friendly) {
   let enemy, update_score;
@@ -357,7 +347,7 @@ function flip_lower(board, friendly, enemy, pos, i, score) {
 function flip_nxt(board, friendly, enemy, pos, score) {
   board[pos].className = friendly;
   pos += 1;
-  while ((pos+1) % 8 != 0 && board[pos].className != friendly) {
+  while (pos % 8 != 0 && board[pos].className != friendly) {
     if (board[pos].className == enemy) {
       board[pos].className = friendly;
       score.innerHTML++;
@@ -378,4 +368,4 @@ function flip_lst(board, friendly, enemy, pos, score) {
   }
 }
 
-/*-------------------------------------------------------------------------*/
+/*----------------------------------------------------------------------------*/

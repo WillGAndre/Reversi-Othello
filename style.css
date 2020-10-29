@@ -13,15 +13,16 @@ body {
 /*-------------------------------------------------------------------------*/
 
 #instructions {
-  width: 97%;
+  width: 95.3%;
   height: 100%;
   border: 2px solid;
   background-color: rgb(242, 243, 244);
-  margin-right: 1em;
-  margin-left: 1em;
+  margin-top: 1.5em;
+  margin-right: 1.2em;
+  margin-left: 0.9em;
   position: sticky;
   padding-left: 1em;
-  padding-right: 1em;
+  padding-right: 1.1em;
 }
 
 .rightS_table {
@@ -51,30 +52,34 @@ body {
 .p_scr {
   font-style: italic;
   margin-top: 20px;
-  margin-left: 20px;
+  margin-left: 30px;
 }
 
 #commands {
   display: flex;
   flex-direction: column;
-  margin-left: 160px;
+  margin-left: 180px;
   margin-top: -200px;
   height: 250px;
   width: 35%;
 }
 
-#color {
+#color_box {
   display: flex;
-  flex-direction: column;
-  margin-left: 250px;
-  margin-top: -40px;
+  margin-left: 280px;
+  margin-top: -68px;
   width: 500px;
+  height: 35%;
 }
 
-.p_color {
-  margin-top: -1px;
-  font-size: small;
-  font-style: italic;
+#color_inner {
+  display: flex;
+  margin-top: 3em;
+  margin-left: -6.2em;
+}
+
+#color_checkbox {
+  margin-left: 3.7em;
 }
 
 #scr_checkbox {
@@ -88,8 +93,9 @@ body {
   display: inline-flex;
   flex-direction: column;
   justify-content: space-around;
+  width: 50%;
   margin-top: -15px;
-  margin-left: 250px;
+  margin-left: 280px;
   margin-right: -230px;
 }
 
@@ -130,21 +136,40 @@ body {
 
 .board {
   display: grid;
-  grid-template-columns: 89px 89px 89px 89px 89px 89px 89px 89px;
-  grid-template-rows: 63px 63px 63px 63px 63px 63px 63px 58px;
+  grid-template-columns: 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5%;
+  grid-template-rows: 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5% 12.5%;
   background-color: rgb(111, 151, 97);/*rgb(46, 99, 28);*/
   border-width: 2px;
   border-style: dashed;
   width: 50%;
   height: 500px;
-  margin-left: 15px;
+  margin-left: 1%;
   position: sticky;
+}
+
+#game_log {
+  width: 49.33%;
+  display: flex;
+  flex-direction: row;
+  background-color: rgb(223, 218, 224);
+  border: 2px solid;
+  float: left;
+  clear: both;
+  border-top: 0em;
+  margin-left: 0.8em;
+  padding-left: 0.5em;
+}
+
+#rep_player {
+  margin-left: 0.5em;
+}
+
+#game_log, #rep_player {
+  font-size: large;
 }
 
 .cell {
   cursor: pointer;
-  /*display: flex;
-  justify-content: center;*/
   text-align: center;
   background-color: rgb(111, 151, 97);
   border: 1px solid;
@@ -155,7 +180,6 @@ body {
   width: 50px;
   background-color: rgb(0,0,0);
   border-radius: 50%;
-  /*display: inline-block;*/
   margin-top: 5px;
   margin-left: 19.5px;
   margin-right: 25px;
