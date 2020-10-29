@@ -6,20 +6,19 @@ body {
   display: flex;
   justify-content: center;
   background-color: rgb(167, 51, 51);
-  margin-left: 0.9375em;
+  margin-left: 1%;
   margin-right: 0.9375em;
 }
 
 /*-------------------------------------------------------------------------*/
 
 #instructions {
-  width: 95.3%;
-  height: 100%;
+  width: 96.25%;
   border: 0.125em solid;
   background-color: rgb(242, 243, 244);
   margin-top: 1.5em;
-  margin-right: 1.2em;
-  margin-left: 0.9em;
+  margin-right: 1em;
+  margin-left: 1%;
   position: sticky;
   padding-left: 1em;
   padding-right: 1.1em;
@@ -66,15 +65,15 @@ body {
 
 #color_box {
   display: flex;
-  margin-left: 17.5em;
-  margin-top: -4.25em;
+  margin-left: 130%;
+  margin-top: -3.7em;
   width: 31.25em;
   height: 35%;
 }
 
 #color_inner {
   display: flex;
-  margin-top: 3em;
+  margin-top: 2.5em;
   margin-left: -6.2em;
 }
 
@@ -95,8 +94,7 @@ body {
   justify-content: space-around;
   width: 50%;
   margin-top: -0.9375em;
-  margin-left: 17.5em;
-  margin-right: -14.375em;
+  margin-left: 130%;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -119,12 +117,12 @@ body {
 #HOF {
   position: absolute;
   text-align: center;
-  width: 60%;
+  width: 62%;
   height: 85%;
   display: grid;
   border: 0.125em dotted;
   margin-top: 0.9375em;
-  margin-left: 14.6875em;
+  margin-left: 35%;
 }
 
 #HOF_tb {
@@ -148,7 +146,7 @@ body {
 }
 
 #game_log {
-  width: 49.33%;
+  width: 49.5%;
   display: flex;
   flex-direction: row;
   background-color: rgb(223, 218, 224);
@@ -156,7 +154,7 @@ body {
   float: left;
   clear: both;
   border-top: 0em;
-  margin-left: 0.8em;
+  margin-left: 1%;
   padding-left: 0.5em;
 }
 
@@ -169,8 +167,9 @@ body {
 }
 
 .cell {
+  display: flex;
+  justify-content: center;
   cursor: pointer;
-  text-align: center;
   background-color: rgb(111, 151, 97);
   border: 0.0625em solid;
 }
@@ -181,8 +180,6 @@ body {
   background-color: rgb(0,0,0);
   border-radius: 50%;
   margin-top: 0.3125em;
-  margin-left: 1.21875em;
-  margin-right: 1.5625em;
   margin-bottom: 0.3125em;
 }
 
@@ -193,8 +190,6 @@ body {
   border-radius: 50%;
   display: inline-block;
   margin-top: 0.3125em;
-  margin-left: 1.21875em;
-  margin-right: 1.5625em;
   margin-bottom: 0.3125em;
 }
 
@@ -205,7 +200,5 @@ body {
   border-radius: 50%;
   display: inline-block;
   margin-top: 0.3125em;
-  margin-left: 1.21875em;
-  margin-right: 1.5625em;
   margin-bottom: 0.3125em;
 }
