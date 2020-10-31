@@ -126,7 +126,7 @@ body {
   margin-left: 35%;
 }
 
-#HOF_tb {
+#HOF_tb #HOF_body {
   margin-top: -4.375em;
   text-align: center;
 }
