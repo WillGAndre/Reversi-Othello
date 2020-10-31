@@ -29,12 +29,12 @@
         <div id="color_box">
           <u><i>Player 1 color:</i></u>
           <div id="color_inner">
-            <i>Black</i><input id="color_checkbox" type="checkbox" checked>
+            <label for="color_checkbox"><i>Black</i></label><input id="color_checkbox" type="checkbox" checked>
           </div>
         </div>
         <div id="scr_checkbox">
-          <i>1 player:</i><input id="numberOfPlayers1" type="radio" name="numberOfPlayers" checked>
-          <i>2 players:</i><input id="numberOfPlayers2" type="radio" name="numberOfPlayers">
+          <label for="numberOfPlayers1"><i>1 player:</i></label><input id="numberOfPlayers1" type="radio" name="numberOfPlayers" checked>
+          <label for="numberOfPlayers2"><i>2 players:</i></label><input id="numberOfPlayers2" type="radio" name="numberOfPlayers">
         </div>
         <div id="scr_button">
         <input id="restart" type="button" value="Restart!" onclick="window.location.reload();">
@@ -46,8 +46,8 @@
       <div id="autBox">
         <form id="formLogin" action="">
           <u><i>Authentication:</i></u><br><br>
-          <i>Name:</i><input id="autUsername" type="text"><br><br>
-          <i>Password:</i><input id="autPassword" type="password"><br><br>
+          <label for="autUsername"><i>Name:</i></label><input id="autUsername" type="text"><br><br>
+          <label for="autPassword"><i>Password:</i></label><input id="autPassword" type="password"><br><br>
           <input type="button" value="Login" onclick="onLoginSubmitPress()">
           <!--<input type="reset">-->
         </form>
@@ -60,21 +60,16 @@
       <div id="HOF">
         <u><i>Hall of Fame:</i></u>
         <table id="HOF_tb">
-          <tr>
-            <th>User</th>
-            <th>Score</th>
-            <th>Date</th>
-          </tr>
-          <tr>
-            <td>test1</td>
-            <td>50000</td>
-            <td>16/10/00</td>
-          </tr>
-          <tr>
-            <td>test2</td>
-            <td>20000</td>
-            <td>17/10/20</td>
-          </tr>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Score</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="HOF_body">
+            
+          </tbody>
         </table>
       </div>
     </div>

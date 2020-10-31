@@ -175,10 +175,15 @@ function player2_move(board,candidate_dots) {
 function check_win(board,end_p1,end_p2) {
   if ((end_p1 && end_p2) || check_board_full(board)) {
     if (counter_p1.innerHTML > counter_p2.innerHTML) {
+      CURRENTUSER.addScore(parseInt(counter_p1.innerHTML));
       alert("Game over, Black wins");
     } else if (counter_p1.innerHTML < counter_p2.innerHTML) {
+      CURRENTUSER.addScore(parseInt(counter_p2.innerHTML));
       alert("Game over, White wins");
-    } else {alert("Tie!");}
+    } else {
+      CURRENTUSER.addScore(parseInt(counter_p2.innerHTML));
+      alert("Tie!");
+    }
   } else {
     end_p1 = true;
     end_p2 = true;
