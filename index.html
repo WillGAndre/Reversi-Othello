@@ -44,14 +44,19 @@
     </div>
     <div id="authentication" class="rightS_table">
       <div id="autBox">
-        <form action="submit" method="post">
+        <form id="formLogin" action="">
           <u><i>Authentication:</i></u><br><br>
-          <i>Name:</i><input type="text"><br><br>
-          <i>Password:</i><input type="password"><br><br>
-          <input type="submit">
-          <input type="reset">
+          <i>Name:</i><input id="autUsername" type="text"><br><br>
+          <i>Password:</i><input id="autPassword" type="password"><br><br>
+          <input type="button" value="Login" onclick="onLoginSubmitPress()">
+          <!--<input type="reset">-->
         </form>
-      </div>
+        
+        <div id="userInformation">
+          <i>Welcome: </i> <span id="userUsername"></span><br><br>
+          <input type="button" value="Logout" onclick="onLogoutUserPress()">
+        </div>
+      </div>      
       <div id="HOF">
         <u><i>Hall of Fame:</i></u>
         <table id="HOF_tb">
@@ -93,7 +98,7 @@
         </li>
       </ul>
     </div>
-    <script src="index.js"></script>
     <script src="authentication.js"></script>
+    <script src="index.js"></script>
   </body>
 </html>
