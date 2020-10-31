@@ -6,38 +6,41 @@ onButtonInstructionsClick = function(oEvent) {
   instructionsDiv.hidden = !instructionsDiv.hidden;
 }
 
+/*
+  Fix restart button and HOF table
+*/
 
 const player_color = document.getElementById("color_checkbox");
+const diff_elem = document.getElementById("diff");
 const current_pl = document.getElementById("rep_player");         // Represent who is playing
 const counter_p1 = document.getElementById("scr_p1");             // Score player 1
 const counter_p2 = document.getElementById("scr_p2");             // Score player 2
 let player_counter = 1;                                           // Player counter to control game flow
 
 let curr_player_dot = "dotp1";
-
-/*
-  Add feature where after alert , restart and save score of winning player
-  Convert css px values to %
-*/
+let diff_value = 1;
+let lookup_line = create_lookupLine();
 
 window.onload = function() {
   const gameboard = new Reversi("base");
-  let lookup_line = new Map();
-  create_lookupLine(lookup_line);
   counter_p1.innerHTML = 2;                  //  init score
   counter_p2.innerHTML = 2;
   let pass_p1 = false;
   let pass_p2 = false;
 
-  validate_position(curr_player_dot,gameboard.data_dots,lookup_line);
+  validate_position(curr_player_dot,gameboard.data_dots);
 
   let cells = document.getElementsByClassName("cell");
   let candidate_dots  = document.getElementsByClassName("dotplace");
 
+  diff_elem.addEventListener("input", function() {
+    diff_value = diff_elem.value;
+  }, "false");
+
   player_color.addEventListener("input", function() {
     if (!player_color.checked) {
       player2_move(gameboard.data_dots,candidate_dots);
-      validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
+      validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
     }
   }, "false");
 
@@ -65,7 +68,7 @@ window.onload = function() {
           }
 
           player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
-          validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p2 = true : pass_p2 = false
+          validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p2 = true : pass_p2 = false
           check_win(gameboard.data_dots,pass_p1,pass_p2);
 
           if (!pass_p2) {
@@ -75,14 +78,15 @@ window.onload = function() {
             clear_board(candidate_dots);
           }
 
-          validate_position(curr_player_dot,gameboard.data_dots,lookup_line) == 0 ? pass_p1 = true : pass_p1 = false
+          validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
           check_win(gameboard.data_dots,pass_p1,pass_p2);
         }
       }
     }
 }
 
-function create_lookupLine(lookup_line) {
+function create_lookupLine() {
+  let lookup_line = new Map();
   for (let i = 0; i < 64; i++) {
     if(i>=0&&i<=7)  {lookup_line.set(i, 1);}
     if(i>7&&i<=15)  {lookup_line.set(i, 2);}
@@ -93,6 +97,7 @@ function create_lookupLine(lookup_line) {
     if(i>47&&i<=55) {lookup_line.set(i, 7);}
     if(i>55&&i<=63) {lookup_line.set(i, 8);}
   }
+  return lookup_line;
 }
 
 function get_array_dots(cells) {
@@ -161,15 +166,75 @@ class Reversi {
 /*----------------------------------------------------------------------------*/
 
 function player2_move(board,candidate_dots) {
-  let random_dot = candidate_dots[Math.floor(Math.random() * candidate_dots.length)];
-  let cell = random_dot.parentElement;
-  let pos = parseInt(cell.id);
+  let pos;
+  if (diff_value == 1) {
+    let random_dot = candidate_dots[Math.floor(Math.random() * candidate_dots.length)];
+    let cell = random_dot.parentElement;
+    pos = parseInt(cell.id);
+  } else {
+    pos = coin_parity(board, candidate_dots);
+  }
 
   board[pos].className = curr_player_dot;
   flip_enemy(board,pos,curr_player_dot);
   clear_board(candidate_dots);
   player_counter++;
   player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
+}
+
+/*
+Coin Parity Heuristic Value =
+100 * (Max Player Coins - Min Player Coins ) / (Max Player Coins + Min Player Coins)
+*/
+function coin_parity(board, candidate_dots) {
+  let sv_pos    = 0;
+  let score     = 0;
+  let best_scr  = -1;
+
+  let friendly,enemy;
+  curr_player_dot == "dotp2" ? (friendly = "dotp2",enemy = "dotp1") : (friendly = "dotp1",enemy = "dotp2")
+
+  for (let i = 0; i < candidate_dots.length; i++) {
+    let heu_board = create_boardCopy(board);
+    let dot = candidate_dots[i];
+    let cell = dot.parentElement;
+    let pos = parseInt(cell.id);
+    heu_board[pos].className = curr_player_dot;
+    flip_enemy(heu_board,pos,curr_player_dot);
+
+    let min = 0;
+    let max = 0;
+    for (let j = 0; j < 64; j++) {
+      if (heu_board[j].className == friendly) {
+        max++;
+      } else if (heu_board[j].className == enemy) {
+        min++;
+      }
+    }
+    score = ((100 * (max - min)) / (max + min));
+    if (score > best_scr) {
+      best_scr = score;
+      sv_pos = pos;
+    }
+  }
+
+  return sv_pos;
+}
+
+function create_boardCopy(board) {
+  let arr = new Array(64);
+  for (let i = 0; i < 64; i++) {
+    let dot = document.createElement("div");
+    if (board[i].className == "dotp1") {
+      dot.className = "dotp1";
+    } else if (board[i].className == "dotp2") {
+      dot.className = "dotp2";
+    } else if (board[i].className == "dotplace") {
+      dot.className = "dotplace";
+    }
+    arr[i] = dot;
+  }
+  return arr;
 }
 
 function check_win(board,end_p1,end_p2) {
@@ -203,7 +268,7 @@ function check_board_full(board) {
 
 /*----------------------------------------------------------------------------*/
 
-function validate_position(friendly,board,lookup_line) {
+function validate_position(friendly,board) {
   let num_gray_dots = 0;
   let enemy;
   friendly == "dotp1" ? (enemy="dotp2") : (enemy="dotp1")
@@ -222,7 +287,6 @@ function validate_position(friendly,board,lookup_line) {
           let dot = board[pos];
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
-            //candidate_moves.push(pos);
             num_gray_dots++;
           }
         }
@@ -230,7 +294,6 @@ function validate_position(friendly,board,lookup_line) {
           let dot = board[pos];
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
-            //candidate_moves.push(pos);
             num_gray_dots++;
           }
         }
@@ -242,7 +305,6 @@ function validate_position(friendly,board,lookup_line) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
-          //candidate_moves.push(pos);
           num_gray_dots++;
         }
       }
@@ -253,7 +315,6 @@ function validate_position(friendly,board,lookup_line) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
-          //candidate_moves.push(pos);
           num_gray_dots++;
         }
       }
@@ -376,15 +437,3 @@ function flip_lst(board, friendly, enemy, pos, score) {
 }
 
 /*----------------------------------------------------------------------------*/
-
-/*
-for (let i = 0; i < cells.length; i++) {
-  cells[i].onclick = function() {
-    let index = -1;
-    for (let j = 0; j < candidate_dots.length; j++) {
-      if (candidate_dots[j].parentElement.id == cells[i].id) {
-        index = j;
-        break;
-      }
-    }
-*/

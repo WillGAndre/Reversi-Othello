@@ -25,7 +25,7 @@
       <div id="scr_p1" class="rep_scr">0</div><p class="p_scr">Black score</p>
       <div id="scr_p2" class="rep_scr">0</div><p class="p_scr">White score</p>
       <div id="commands">
-        <u><i>Difficulty:</i></u><input type="range" min="1" max="3" value="1" style="margin-top:1.8em">
+        <u><i>Difficulty:</i></u><input id="diff" type="range" min="1" max="2" value="1" style="margin-top:1.8em">
         <div id="color_box">
           <u><i>Player 1 color:</i></u>
           <div id="color_inner">
@@ -37,7 +37,7 @@
           <label for="numberOfPlayers2"><i>2 players:</i></label><input id="numberOfPlayers2" type="radio" name="numberOfPlayers">
         </div>
         <div id="scr_button">
-        <input id="restart" type="button" value="Restart!" onclick="window.location.reload();">
+        <input id="restart" type="button" value="Restart!">
         <input type="button" value="Instructions" onclick="onButtonInstructionsClick()">
         </div>
       </div>
@@ -51,12 +51,12 @@
           <input type="button" value="Login" onclick="onLoginSubmitPress()">
           <!--<input type="reset">-->
         </form>
-        
+
         <div id="userInformation">
           <i>Welcome: </i> <span id="userUsername"></span><br><br>
           <input type="button" value="Logout" onclick="onLogoutUserPress()">
         </div>
-      </div>      
+      </div>
       <div id="HOF">
         <u><i>Hall of Fame:</i></u>
         <table id="HOF_tb">
@@ -68,7 +68,7 @@
             </tr>
           </thead>
           <tbody id="HOF_body">
-            
+
           </tbody>
         </table>
       </div>
