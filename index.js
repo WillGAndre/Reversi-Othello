@@ -18,6 +18,7 @@ const counter_p1 = document.getElementById("scr_p1");             // Score playe
 const counter_p2 = document.getElementById("scr_p2");             // Score player 2
 let player_counter = 1;                                           // Player counter to control game flow
 
+let what_color_is_player = "black";
 let curr_player_dot = "dotp1";
 let diff_value = 1;
 let lookup_line = create_lookupLine();
@@ -39,6 +40,7 @@ window.onload = function() {
   }, "false");
 
   player_color.addEventListener("input", function() {
+    what_color_is_player == "black" ? what_color_is_player = "white" : what_color_is_player = "black"
     if (!player_color.checked) {
       if (check_board_full(board) == false || !(pass_p1 == true && pass_p2 == true)) {
         player2_move(gameboard.data_dots,candidate_dots);
@@ -242,14 +244,18 @@ function create_boardCopy(board) {
 
 function check_win(board,end_p1,end_p2) {
   if ((end_p1 && end_p2) || check_board_full(board)) {
+    let player_points = 0;
+    if (what_color_is_player == "black") {
+      player_points = parseInt(counter_p1.innerHTML);
+    } else {
+      player_points = parseInt(counter_p2.innerHTML);
+    }
+    CURRENTUSER.addScore(player_points);
     if (counter_p1.innerHTML > counter_p2.innerHTML) {
-      CURRENTUSER.addScore(parseInt(counter_p1.innerHTML));
       alert("Game over, Black wins");
     } else if (counter_p1.innerHTML < counter_p2.innerHTML) {
-      CURRENTUSER.addScore(parseInt(counter_p2.innerHTML));
       alert("Game over, White wins");
     } else {
-      CURRENTUSER.addScore(parseInt(counter_p2.innerHTML));
       alert("Tie!");
     }
   } else {
