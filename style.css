@@ -126,8 +126,14 @@ body {
   margin-left: 35%;
 }
 
-#HOF_tb #HOF_body {
-  margin-top: -4.375em;
+#HOF_tb {
+  margin-top: -17%;
+  margin-left: 10%;
+  margin-bottom: -16%;
+}
+
+#HOF_body {
+  margin-top: -10em;
   text-align: center;
 }
 

@@ -40,13 +40,13 @@ window.onload = function() {
   }, "false");
 
   player_color.addEventListener("input", function() {
-    what_color_is_player == "black" ? what_color_is_player = "white" : what_color_is_player = "black"
     if (!player_color.checked) {
-      if (check_board_full(board) == false || !(pass_p1 == true && pass_p2 == true)) {
+      if (check_board_full(gameboard.data_dots) == false || !(pass_p1 == true && pass_p2 == true)) {
         player2_move(gameboard.data_dots,candidate_dots);
         validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
       }
     }
+    what_color_is_player == "black" ? what_color_is_player = "white" : what_color_is_player = "black"
   }, "false");
 
     for (let i = 0; i < cells.length; i++) {
