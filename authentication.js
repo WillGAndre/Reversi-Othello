@@ -1,28 +1,12 @@
+/**
+ * In order to implement some sort of user management, we use the localStorage.
+ * The usage of localStorage is as follows:
+ *  	users - This will store as a string, all users that once logged in the site.
+ *  	currentUser - This will store as a string, the current user. Like a login "remember me" is set to true.
+ */
+
 let CURRENTUSER = null;
 _initializeAuthentication();
-
-// This function shall be called in the onLoad event ONLY!
-function _initializeAuthentication(){
-	//Define local storage basis
-	if(!localStorage.getItem("users")){
-		let initialUsers = [new User("guest", "")];
-		localStorage.setItem("users", JSON.stringify(initialUsers));
-	}
-	
-	// Define default CURRENTUSER
-	let users = JSON.parse(localStorage.getItem("users"));
-	let userIndex = users.findIndex(x => x.username === "guest");
-	let user = users[userIndex];
-	CURRENTUSER = new User(user.username, user.password);
-	CURRENTUSER.totalPoints = user.totalPoints;
-	CURRENTUSER.scores = user.scores;
-
-	// Hide user information
-	document.getElementById("userInformation").hidden = true;
-
-	// Build Hall of Fame
-	buildHOFTableBody();
-}
 
 function onLoginSubmitPress(){
 	let username = document.getElementById("autUsername").value.trim();
@@ -42,18 +26,16 @@ function onLoginSubmitPress(){
 	let user = users[userIndex];
 	if(user){ // user exists;
 		if(password === user.password){
-			CURRENTUSER = new User(username, password);
-			CURRENTUSER.totalPoints = user.totalPoints;
-			CURRENTUSER.scores = user.scores;
-			loginSuccess()
+			_setCurrentUser(user);
+			loginSuccess();
 		} else {
 			alert("User or password are incorrect");
 		}
 	} else { // otherwise
-		CURRENTUSER = new User(username, password)
+		_setCurrentUser(new User(username, password));
 		users.push(CURRENTUSER);
 		localStorage.setItem("users", JSON.stringify(users));
-		loginSuccess()
+		loginSuccess();
 	}
 }
 function loginSuccess(){
@@ -63,50 +45,15 @@ function loginSuccess(){
 }
 
 function onLogoutUserPress(){
-	let users = JSON.parse(localStorage.getItem("users"));
-	let userIndex = users.findIndex(x => x.username === "guest");
-	let user = users[userIndex];
-	CURRENTUSER = new User(user.username, user.password);
-	CURRENTUSER.totalPoints = user.totalPoints;
-	CURRENTUSER.scores = user.scores;
+	_setCurrentUser(_getGuestUser());
+
 	document.getElementById("formLogin").hidden = false;
 	document.getElementById("userInformation").hidden = true;
 }
 
-/**
-* Some objects.
-*/
-function User(username, password){
-	this.username = username;
-	this.password = password;
-	this.totalPoints = 0;
-	this.scores = [];
-
-	this.addScore = function(points){
-		this.totalPoints += points;
-		this.scores.push(new Score(points, new Date().toISOString()));
-		
-		// Update Local Storage
-		let users = JSON.parse(localStorage.getItem("users"));
-		let userIndex = users.findIndex(x => x.username === this.username);
-		users[userIndex] = this;
-		CURRENTUSER = this;
-		localStorage.setItem("users", JSON.stringify(users));
-
-		buildHOFTableBody();
-	}
-}
-
-function Score(points, date){
-	this.points = points;
-	this.date = date;
-}
-
-/**
-* Table scores
-*/
 function buildHOFTableBody(){
 	let scores = [];
+	// Sorting all the existing scores in descendant order
 	JSON.parse(localStorage.getItem("users")).forEach(x => x.scores.forEach(y => scores.push({
 		username: x.username,
 		score: y
@@ -114,17 +61,19 @@ function buildHOFTableBody(){
 	scores = scores.sort((x,y) => x.score.points > y.score.points ? -1 : (x.score.points < y.score.points ? 1 : 0));
 
 	let tableBody = document.getElementById("HOF_body");
+	// Remove existing scores
 	while(tableBody.firstChild){
 		tableBody.removeChild(tableBody.firstChild);
 	}
+	// Add the top 5 scores
 	for (var i = 0; i < (scores.length < 5 ? scores.length : 5); i++) {
 		tableBody.appendChild((new HighScoreRow(scores[i].username, scores[i].score)).toHTMLRow());
 	}
 }
 
 /**
-* Some objects
-*/
+ * HOF table "classes"
+ */
 function HighScoreRow(username, score){
 	this.username = username;
 	this.score = score.points;
@@ -148,4 +97,82 @@ function HighScoreRow(username, score){
         
         return ret;
 	}
+}
+
+/**
+ * User "classes"
+ */
+function User(username, password){
+	this.username = username;
+	this.password = password;
+	this.totalPoints = 0;
+	this.scores = [];
+
+	this.addScore = function(points){
+		this.totalPoints += points;
+		this.scores.push(new Score(points, new Date().toISOString()));
+		
+		// Update Local Storage
+		let users = JSON.parse(localStorage.getItem("users"));
+		let userIndex = users.findIndex(x => x.username === this.username);
+
+		users[userIndex] = this;
+		CURRENTUSER = this;
+
+		localStorage.setItem("users", JSON.stringify(users));
+		localStorage.setItem("currentUser", JSON.stringify(this));
+
+		buildHOFTableBody();
+	}
+}
+function Score(points, date){
+	this.points = points;
+	this.date = date;
+}
+
+/**
+ * Private functions
+ */
+// This funtion will validate if the localStorage has already been used and initialize it if necessary.
+function _initializeAuthentication(){
+	//Define local storage basis
+	let initialUsers = [new User("guest", "")];
+	if(!localStorage.getItem("users")){
+		localStorage.setItem("users", JSON.stringify(initialUsers));
+	}
+	if(!localStorage.getItem("currentUser")){
+		localStorage.setItem("currentUser", JSON.stringify(initialUsers[0]));
+	}
+	
+	// Define default CURRENTUSER
+	let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+	_setCurrentUser(currentUser);
+	
+	// Hide user information
+	if(CURRENTUSER.username === "guest"){
+		document.getElementById("userInformation").hidden = true;
+	} else {
+		loginSuccess();
+	}
+	// Build Hall of Fame
+	buildHOFTableBody();
+}
+
+function _setCurrentUser(user){
+	CURRENTUSER = new User(user.username, user.password);
+	CURRENTUSER.totalPoints = user.totalPoints;
+	CURRENTUSER.scores = user.scores;
+	localStorage.setItem("currentUser", JSON.stringify(CURRENTUSER));
+}
+
+function _getGuestUser(){
+	let users = JSON.parse(localStorage.getItem("users"));
+	let userIndex = users.findIndex(x => x.username === "guest");
+	let user = users[userIndex];
+
+	let ret = new User(user.username, user.password);
+	ret.scores = user.scores;
+	ret.totalPoints = user.totalPoints;
+
+	return ret;
 }
