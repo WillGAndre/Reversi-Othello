@@ -10,6 +10,7 @@ onButtonInstructionsClick = function(oEvent) {
   Fix restart button and HOF table
 */
 
+const restart_bt = document.getElementById("restart");
 const player_color = document.getElementById("color_checkbox");
 const diff_elem = document.getElementById("diff");
 const current_pl = document.getElementById("rep_player");         // Represent who is playing
@@ -39,8 +40,10 @@ window.onload = function() {
 
   player_color.addEventListener("input", function() {
     if (!player_color.checked) {
-      player2_move(gameboard.data_dots,candidate_dots);
-      validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
+      if (check_board_full(board) == false || !(pass_p1 == true && pass_p2 == true)) {
+        player2_move(gameboard.data_dots,candidate_dots);
+        validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
+      }
     }
   }, "false");
 
