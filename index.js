@@ -59,7 +59,7 @@ window.onload = function() {
 
             let arr_dots = get_array_dots(cells);
             let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
-            flip_enemy(gameboard.data_dots, index_dot, curr_player_dot);
+            flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 1);
             clear_board(candidate_dots);
             player_counter++;
           } else if (pass_p1) {
@@ -176,7 +176,7 @@ function player2_move(board,candidate_dots) {
   }
 
   board[pos].className = curr_player_dot;
-  flip_enemy(board,pos,curr_player_dot);
+  flip_enemy(board,pos,curr_player_dot,1);
   clear_board(candidate_dots);
   player_counter++;
   player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
@@ -200,7 +200,7 @@ function coin_parity(board, candidate_dots) {
     let cell = dot.parentElement;
     let pos = parseInt(cell.id);
     heu_board[pos].className = curr_player_dot;
-    flip_enemy(heu_board,pos,curr_player_dot);
+    flip_enemy(heu_board,pos,curr_player_dot,0);
 
     let min = 0;
     let max = 0;
@@ -250,8 +250,8 @@ function check_win(board,end_p1,end_p2) {
       alert("Tie!");
     }
   } else {
-    end_p1 = true;
-    end_p2 = true;
+    end_p1 = false;
+    end_p2 = false;
   }
   return;
 }
@@ -369,68 +369,72 @@ function valid_pos_lst(board,friendly,pos) {
 
 /*----------------------------------------------------------------------------*/
 
-function flip_enemy(board, pos, friendly) {
+function flip_enemy(board, pos, friendly, flg_score) {
   let enemy, update_score;
   friendly == "dotp1" ? (enemy="dotp2",update_score=counter_p1) : (enemy="dotp1",update_score=counter_p2)
   for (let i = 7; i < 10; i++) {
     if (valid_pos_upper(board,friendly,pos,i) == true) {
-      flip_upper(board,friendly,enemy,pos,i,update_score);
+      flip_upper(board,friendly,enemy,pos,i,update_score,flg_score);
     }
     if (valid_pos_lower(board,friendly,pos,i) == true) {
-      flip_lower(board,friendly,enemy,pos,i,update_score);
+      flip_lower(board,friendly,enemy,pos,i,update_score,flg_score);
     }
   }
   if (valid_pos_nxt(board,friendly,pos) == true) {
-    flip_nxt(board,friendly,enemy,pos,update_score);
+    flip_nxt(board,friendly,enemy,pos,update_score,flg_score);
   }
   if (valid_pos_lst(board,friendly,pos) == true) {
-    flip_lst(board,friendly,enemy,pos,update_score);
+    flip_lst(board,friendly,enemy,pos,update_score,flg_score);
   }
 }
 
-function flip_upper(board, friendly, enemy, pos, i, score) {
+function flip_upper(board, friendly, enemy, pos, i, score, flg_score) {
   board[pos].className = friendly;                      // Update
   pos -= i;
   while (pos >= 0 && board[pos].className != friendly) {
     if (board[pos].className == enemy) {
       board[pos].className = friendly;
-      score.innerHTML++;
+      if (flg_score==1)
+        score.innerHTML++;
     }
     pos -= i;
   }
 }
 
-function flip_lower(board, friendly, enemy, pos, i, score) {
+function flip_lower(board, friendly, enemy, pos, i, score, flg_score) {
   board[pos].className = friendly;
   pos += i;
   while (pos < 64 && board[pos].className != friendly) {
     if (board[pos].className == enemy) {
       board[pos].className = friendly;
-      score.innerHTML++;
+      if (flg_score==1)
+        score.innerHTML++;
     }
     pos += i;
   }
 }
 
-function flip_nxt(board, friendly, enemy, pos, score) {
+function flip_nxt(board, friendly, enemy, pos, score, flg_score) {
   board[pos].className = friendly;
   pos += 1;
   while (pos % 8 != 0 && board[pos].className != friendly) {
     if (board[pos].className == enemy) {
       board[pos].className = friendly;
-      score.innerHTML++;
+      if (flg_score==1)
+        score.innerHTML++;
     }
     pos += 1;
   }
 }
 
-function flip_lst(board, friendly, enemy, pos, score) {
+function flip_lst(board, friendly, enemy, pos, score, flg_score) {
   board[pos].className = friendly;
   pos -= 1;
   while (pos % 8 != 0 && board[pos].className != friendly) {
     if (board[pos].className == enemy) {
       board[pos].className = friendly;
-      score.innerHTML++;
+      if (flg_score==1)
+        score.innerHTML++;
     }
     pos -= 1;
   }
