@@ -8,6 +8,14 @@
 let CURRENTUSER = null;
 _initializeAuthentication();
 
+const login_fetch = document.getElementById("login_bt");
+/* Register player to tw server */
+login_fetch.addEventListener("click", function() {
+  if (document.getElementById("userInformation").hidden == false) {
+    getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
+  }
+}, false);
+
 function onLoginSubmitPress(){
 	let username = document.getElementById("autUsername").value.trim();
 	let password = document.getElementById("autPassword").value;
@@ -49,6 +57,7 @@ function onLogoutUserPress(){
 
 	document.getElementById("formLogin").hidden = false;
 	document.getElementById("userInformation").hidden = true;
+	pl2_checked.checked = false;
 }
 
 function buildHOFTableBody(){
@@ -176,3 +185,5 @@ function _getGuestUser(){
 
 	return ret;
 }
+
+// ------------------------------------------------------------------------
