@@ -1,3 +1,5 @@
+/* By Guilherme Pereira and Nuno Taveira */
+
 var instructionsDiv = document.getElementById("instructions");
      instructionsDiv.hidden = true;
 
@@ -7,104 +9,184 @@ onButtonInstructionsClick = function(oEvent) {
 }
 
 /*
-  Fix restart button and HOF table
+  Fix bug where game piece doesn´t have possible move and the other player
+  can´t play because of that game piece. Player cages the other player in
+  corner.
+  (More user testing to identify bug!)
 */
+const login_fetch = document.getElementById("login_bt");
+let events = null;
 
+const pl1_checked = document.getElementById("numberOfPlayers1");
+const pl2_checked = document.getElementById("numberOfPlayers2");
 const restart_bt = document.getElementById("restart");
 const player_color = document.getElementById("color_checkbox");
 const diff_elem = document.getElementById("diff");
-const current_pl = document.getElementById("rep_player");         // Represent who is playing
+const current_pl = document.getElementById("rep_player");         // Represent who is playing in game
 const counter_p1 = document.getElementById("scr_p1");             // Score player 1
 const counter_p2 = document.getElementById("scr_p2");             // Score player 2
 let player_counter = 1;                                           // Player counter to control game flow
 
-let what_color_is_player = "black";
-let curr_player_dot = "dotp1";
-let diff_value = 1;
+let color_player = "black";                                       // Color of human player
+let curr_player_dot = "dotp1";                                    // Type of dot of current player
+let diff_value = 1;                                               // Difficulty value (1 or 2)
 let lookup_line = create_lookupLine();
+let check_win_flag = true;
+let game_hash = null;                                             // Game hash for multiplayer
+
+/* Register player to tw server */
+login_fetch.addEventListener("click", function() {
+  if (document.getElementById("userInformation").hidden == false) {
+    getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
+  }
+}, false);
 
 window.onload = function() {
   const gameboard = new Reversi("base");
-  counter_p1.innerHTML = 2;                  //  init score
+  counter_p1.innerHTML = 2;                                       //  init score
   counter_p2.innerHTML = 2;
-  let pass_p1 = false;
-  let pass_p2 = false;
+  let pass_p1 = false;                                            //  Player 1 passes round (if true)
+  let pass_p2 = false;                                            //  Player 2 passes round
 
-  validate_position(curr_player_dot,gameboard.data_dots);
+  pl1_checked.addEventListener("input", function() {
+    // Function to validate and generate gray dots
+    validate_position(curr_player_dot,gameboard.data_dots);
 
-  let cells = document.getElementsByClassName("cell");
-  let candidate_dots  = document.getElementsByClassName("dotplace");
+    let cells = document.getElementsByClassName("cell");
+    let candidate_dots  = document.getElementsByClassName("dotplace");
 
-  diff_elem.addEventListener("input", function() {
-    diff_value = diff_elem.value;
-  }, "false");
+    // Difficulty event listener
+    diff_elem.addEventListener("input", function() {
+      diff_value = diff_elem.value;
+    }, "false");
 
-  player_color.addEventListener("input", function() {
-    if (!player_color.checked) {
-      if (check_board_full(gameboard.data_dots) == false || !(pass_p1 == true && pass_p2 == true)) {
-        player2_move(gameboard.data_dots,candidate_dots);
-        validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
-      }
-    }
-    what_color_is_player == "black" ? what_color_is_player = "white" : what_color_is_player = "black"
-  }, "false");
-
-    for (let i = 0; i < cells.length; i++) {
-      cells[i].onclick = function() {
-        if (cells[i].firstElementChild.className == "dotplace") {
-          let index = -1;
-          for (let j = 0; j < candidate_dots.length; j++) {
-            if (candidate_dots[j].parentElement.id == cells[i].id) {
-              index = j;
-              break;
-            }
-          }
-          if (index >= 0 && !pass_p1) {
-            let cell = candidate_dots[index].parentElement;
-
-            let arr_dots = get_array_dots(cells);
-            let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
-            flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 1);
-            clear_board(candidate_dots);
-            player_counter++;
-          } else if (pass_p1) {
-            player_counter++;
-            clear_board(candidate_dots);
-          }
-
-          player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
-          validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p2 = true : pass_p2 = false
-          check_win(gameboard.data_dots,pass_p1,pass_p2);
-
-          if (!pass_p2) {
-            player2_move(gameboard.data_dots,candidate_dots);
-          } else {
-            player_counter++;
-            clear_board(candidate_dots);
-          }
-
+    // Player color event listener
+    player_color.addEventListener("input", function() {
+      if (!player_color.checked || player_color.checked) {
+          player2_move(gameboard.data_dots,candidate_dots);
           validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
           check_win(gameboard.data_dots,pass_p1,pass_p2);
+      }
+      color_player == "black" ? color_player = "white" : color_player = "black"
+    }, "false");
+
+      for (let i = 0; i < cells.length; i++) {
+        cells[i].onclick = function() {
+          if (cells[i].firstElementChild.className == "dotplace") {
+            let index = -1;
+            for (let j = 0; j < candidate_dots.length; j++) {
+              if (candidate_dots[j].parentElement.id == cells[i].id) {
+                index = j;
+                break;
+              }
+            }
+            if (index >= 0 && !pass_p1) {  // Player 1 plays
+              let cell = candidate_dots[index].parentElement;
+
+              let arr_dots = get_array_dots(cells);
+              let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
+              flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 1);
+              clear_board(candidate_dots);
+              player_counter++;
+            } else if (pass_p1) {   // Player 1 passes round (can't play)
+              player_counter++;
+              clear_board(candidate_dots);
+            }
+
+            // Increment counter (game flow), validate new positions and check if game is over
+            player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
+            validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p2 = true : pass_p2 = false
+            check_win(gameboard.data_dots,pass_p1,pass_p2,candidate_dots);
+
+            if (!pass_p2) {  // Player 2 plays
+              player2_move(gameboard.data_dots,candidate_dots);
+            } else if (pass_p2){  // Player 2 passes round
+              player_counter++;
+              player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
+              clear_board(candidate_dots);
+            }
+
+            validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
+            if (check_win_flag)
+              check_win(gameboard.data_dots,pass_p1,pass_p2,candidate_dots);
+          }
         }
       }
+  }, false);
+
+  pl2_checked.addEventListener("click", function() {
+    /*
+      1. Player needs to login in
+      2. Player needs to join game
+      3. Player waits for update in frame -> 2 possibilities Waiting and Play
+      4. Game flow...
+    */
+    if (document.getElementById("userInformation").hidden == true) {
+      alert("Login required!");
+      pl2_checked.checked = false;
+    } else {
+      joinGame();
     }
+  }, false);
 }
 
+function joinGame() {
+  let joinAns = getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/join",{'group': 15, 'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
+    joinAns.then(value => {
+    if (value.error == null) {
+      color_player = value.color;
+      game_hash = value.game;
+      let data = playMultiGame(game_hash);
+    } else {
+      setInterval(() => {joinGame();}, 4000);
+    } 
+  })
+}
+
+function playMultiGame(game_hash) {
+  let url = "http://twserver.alunos.dcc.fc.up.pt:8008/update?nick="+CURRENTUSER.username+"&game="+game_hash;
+  events = new EventSource(url);
+  let data = 0;
+  events.onopen = function() {
+    console.log("Connection is open");
+  }
+  events.onmessage = function(event) {
+    data = JSON.parse(event.data);
+  }
+  events.onerror = function() {
+    console.log("Error in connection " + events.readyState);
+    events.close();
+    setInterval(() => {
+      if (events.readyState == EventSource.CLOSED) {
+        playMultiGame(game_hash);
+      }
+    }, 4000);
+  }
+  // events.close();       Must close when game ends
+  return data;
+}
+
+// Auxiliary Functions
+/*
+  Creates Map that is used to represent every line of the board
+  based on index of the board (array).
+*/
 function create_lookupLine() {
   let lookup_line = new Map();
   for (let i = 0; i < 64; i++) {
     if(i>=0&&i<=7)  {lookup_line.set(i, 1);}
-    if(i>7&&i<=15)  {lookup_line.set(i, 2);}
-    if(i>15&&i<=23) {lookup_line.set(i, 3);}
-    if(i>23&&i<=31) {lookup_line.set(i, 4);}
-    if(i>31&&i<=39) {lookup_line.set(i, 5);}
-    if(i>39&&i<=47) {lookup_line.set(i, 6);}
-    if(i>47&&i<=55) {lookup_line.set(i, 7);}
-    if(i>55&&i<=63) {lookup_line.set(i, 8);}
+    if(i>=8&&i<=15)  {lookup_line.set(i, 2);}
+    if(i>=16&&i<=23) {lookup_line.set(i, 3);}
+    if(i>=24&&i<=31) {lookup_line.set(i, 4);}
+    if(i>=32&&i<=39) {lookup_line.set(i, 5);}
+    if(i>=40&&i<=47) {lookup_line.set(i, 6);}
+    if(i>=48&&i<=55) {lookup_line.set(i, 7);}
+    if(i>=56&&i<=63) {lookup_line.set(i, 8);}
   }
   return lookup_line;
 }
 
+// Generate array of dots representation based on cells
 function get_array_dots(cells) {
   let arr_dots = new Array(cells.length);
   for (let i = 0; i < cells.length; i++) {
@@ -118,6 +200,7 @@ function get_array_dots(cells) {
   return arr_dots;
 }
 
+// Clear gray dots from board
 function clear_board(gray_dots) {
   while (gray_dots.length > 0) {
     gray_dots[0].classList.remove("dotplace");
@@ -125,6 +208,7 @@ function clear_board(gray_dots) {
   gray_dots.clear;
 }
 
+// Reversi class that creates game board
 class Reversi {
   constructor(id) {
     this.cells       = new Array(64);   // Contem Cell
@@ -168,8 +252,20 @@ class Reversi {
   }
 }
 
-/*----------------------------------------------------------------------------*/
 
+/*
+  Player 2 move , has two modes that are configurable by the difficulty range
+  choosen.
+  Difficulty 1 - Easy :
+    - Player 2 chooses random play of available options (gray dots).
+  Difficulty 2 - Medium/Hard :
+    - Player 2 chooses play from options that maximaizes its heuristic (Coin Parity).
+
+    Heuristic:
+    100 * (Max Player Coins - Min Player Coins ) / (Max Player Coins + Min Player Coins)
+    -> From the paper "An Analysis of Heuristics in Othello" - by Vaishnavi Sannidhanam and Muthukaruppan Annamalai
+    -> Where Max is Player 2 and Min being Player 1 (human)
+*/
 function player2_move(board,candidate_dots) {
   let pos;
   if (diff_value == 1) {
@@ -177,7 +273,9 @@ function player2_move(board,candidate_dots) {
     let cell = random_dot.parentElement;
     pos = parseInt(cell.id);
   } else {
-    pos = coin_parity(board, candidate_dots);
+    dot = coin_parity(board, candidate_dots);
+    let cell = dot.parentElement;
+    pos = parseInt(cell.id);
   }
 
   board[pos].className = curr_player_dot;
@@ -192,7 +290,7 @@ Coin Parity Heuristic Value =
 100 * (Max Player Coins - Min Player Coins ) / (Max Player Coins + Min Player Coins)
 */
 function coin_parity(board, candidate_dots) {
-  let sv_pos    = 0;
+  let sv_dot    = 0;
   let score     = 0;
   let best_scr  = -1;
 
@@ -219,13 +317,14 @@ function coin_parity(board, candidate_dots) {
     score = ((100 * (max - min)) / (max + min));
     if (score > best_scr) {
       best_scr = score;
-      sv_pos = pos;
+      sv_dot = dot;
     }
   }
 
-  return sv_pos;
+  return sv_dot;
 }
 
+// Creates backup of board so we can simulate the heuristic function with a copy
 function create_boardCopy(board) {
   let arr = new Array(64);
   for (let i = 0; i < 64; i++) {
@@ -242,29 +341,31 @@ function create_boardCopy(board) {
   return arr;
 }
 
-function check_win(board,end_p1,end_p2) {
-  if ((end_p1 && end_p2) || check_board_full(board)) {
+// Checks if game is over if so alerts
+function check_win(board,end_p1,end_p2,candidate_dots) {
+  if ((end_p1 && end_p2) || check_board_full(board) || check_board_ply(board,candidate_dots)) {
     let player_points = 0;
-    if (what_color_is_player == "black") {
+    if (color_player == "black") {
       player_points = parseInt(counter_p1.innerHTML);
     } else {
       player_points = parseInt(counter_p2.innerHTML);
     }
     CURRENTUSER.addScore(player_points);
-    if (counter_p1.innerHTML > counter_p2.innerHTML) {
+    if (parseInt(counter_p1.innerHTML) > parseInt(counter_p2.innerHTML)) {
       alert("Game over, Black wins");
-    } else if (counter_p1.innerHTML < counter_p2.innerHTML) {
+      check_win_flag = false;
+    } else if (parseInt(counter_p1.innerHTML) < parseInt(counter_p2.innerHTML)) {
       alert("Game over, White wins");
+      check_win_flag = false;
     } else {
       alert("Tie!");
+      check_win_flag = false;
     }
-  } else {
-    end_p1 = false;
-    end_p2 = false;
   }
   return;
 }
 
+// Checks if board is full
 function check_board_full(board) {
   let flg = true;
   for (let i = 0; i < 63; i++) {
@@ -275,8 +376,39 @@ function check_board_full(board) {
   return flg;
 }
 
-/*----------------------------------------------------------------------------*/
+// Checks if players have any game pieces left if not check win is called
+function check_board_ply(board,candidate_dots) {
+  let counter_pl1 = 0;
+  let counter_pl2 = 0;
+  for (let i = 0; i < 64; i++) {
+    if (board[i].className == "dotp1") {counter_pl1++;}
+    if (board[i].className == "dotp2") {counter_pl2++;}
+  }
+  if (counter_pl1 == 0 || counter_pl2 == 0) {
+    return true;
+  } else {
+    if (counter_p1 == 1) {
+      if (validate_position("dotp1",board) == 0)
+        return true;
+      else
+        clear_board(candidate_dots);
+    } else if (counter_p2 == 1) {
+      if (validate_position("dotp2",board) == 0)
+        return true;
+      else
+        clear_board(candidate_dots);
+    }
+  }
+  return false;
+}
 
+/*
+  Generate gray dots in board based on current player (friendly). This function
+  utilizes valid_pos_all that checks the upper, lower , next and last positions
+  based on the current line.
+  This function returns the number of gray dots that were placed on the board
+  for end of game/player pass exceptions.
+*/
 function validate_position(friendly,board) {
   let num_gray_dots = 0;
   let enemy;
@@ -292,14 +424,14 @@ function validate_position(friendly,board) {
         let adj_line_upper = lookup_line.get(adj_pos_upper);
         let adj_pos_lower = pos+i;
         let adj_line_lower = lookup_line.get(adj_pos_lower);
-        if (adj_pos_upper >= 0 && adj_line_upper == current_line-1 && board[adj_pos_upper].className == enemy && valid_pos_upper(board,friendly,adj_pos_upper,i) == true) {
+        if (adj_pos_upper >= 0 && adj_line_upper == current_line-1 && board[adj_pos_upper].className == enemy && valid_pos_all(board,friendly,adj_pos_upper,i,1) == true) {
           let dot = board[pos];
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
             num_gray_dots++;
           }
         }
-        if (adj_pos_lower < 64 && adj_line_lower == current_line+1 && board[adj_pos_lower].className == enemy && valid_pos_lower(board,friendly,adj_pos_lower,i) == true) {
+        if (adj_pos_lower < 64 && adj_line_lower == current_line+1 && board[adj_pos_lower].className == enemy && valid_pos_all(board,friendly,adj_pos_lower,i,2) == true) {
           let dot = board[pos];
           if (dot.className != "dotp1" && dot.className != "dotp2") {
             dot.className = "dotplace";
@@ -310,7 +442,7 @@ function validate_position(friendly,board) {
 
       let nxt_pos = pos+1;
       let next_line = lookup_line.get(nxt_pos);
-      if (next_line == current_line && nxt_pos < 64 && board[nxt_pos].className == enemy && valid_pos_nxt(board,friendly,nxt_pos) == true) {
+      if (next_line == current_line && nxt_pos < 64 && board[nxt_pos].className == enemy && valid_pos_all(board,friendly,nxt_pos,1,3) == true) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
@@ -320,7 +452,7 @@ function validate_position(friendly,board) {
 
       let lst_pos = pos-1;
       let prev_line = lookup_line.get(lst_pos);
-      if (prev_line == current_line && lst_pos >= 0 && board[lst_pos].className == enemy && valid_pos_lst(board,friendly,lst_pos) == true) {
+      if (prev_line == current_line && lst_pos >= 0 && board[lst_pos].className == enemy && valid_pos_all(board,friendly,lst_pos,1,4) == true) {
         let dot = board[pos];
         if (dot.className != "dotp1" && dot.className != "dotp2") {
           dot.className = "dotplace";
@@ -332,121 +464,155 @@ function validate_position(friendly,board) {
   return num_gray_dots;
 }
 
-function valid_pos_upper(board,friendly,pos,i) {
+/*
+  Searches upper,lower,next,last position for friendly (dotp1 or dotp2) dot,
+  returns boolean value.
+*/
+function valid_pos_all(board,friendly,pos,i,type) {
   let flag_found = false;
-  pos -= i;
-  while (pos >= 0) {
-    if (board[pos].className == friendly) {flag_found = true; break;}
-    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
-    pos -= i;
+  switch (type) {
+    case 1:       // Verify upper
+        pos -= i;
+        while (pos >= 0) {
+          if (board[pos].className == friendly) {flag_found = true; break;}
+          if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
+          pos -= i;
+        }
+        break;
+    case 2:       // Verify lower
+        pos += i;
+        while (pos < 64) {
+          if (board[pos].className == friendly) {flag_found = true; break;}
+          if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
+          pos += i;
+        }
+        break;
+    case 3:       // Verify next
+        let current_line = lookup_line.get(pos);
+        pos += i;
+        let next_line = lookup_line.get(pos);
+        while (current_line == next_line && board[pos] != undefined) {
+          if (board[pos].className == friendly) {flag_found = true; break;}
+          if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
+          pos += i;
+          next_line = lookup_line.get(pos);
+        }
+        break;
+    case 4:       // Verify last
+        let current_lin = lookup_line.get(pos);
+        pos -= i;
+        let lst_line = lookup_line.get(pos);
+        while (current_lin == lst_line && board[pos] != undefined) {
+          if (board[pos].className == friendly) {flag_found = true; break;}
+          if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
+          pos -= i;
+          lst_line = lookup_line.get(pos);
+        }
+        break;
+    default:
   }
   return flag_found;
 }
 
-function valid_pos_lower(board,friendly,pos,i) {
-  let flag_found = false;
-  pos += i;
-  while (pos < 64) {
-    if (board[pos].className == friendly) {flag_found = true; break;}
-    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
-    pos += i;
-  }
-  return flag_found;
-}
 
-function valid_pos_nxt(board,friendly,pos) {
-  let flag_found = false;
-  pos += 1;
-  while (pos % 8 != 0 && board[pos] != undefined) { // (pos+1) % 8 != 0
-    if (board[pos].className == friendly) {flag_found = true; break;}
-    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
-    pos += 1;
-  }
-  return flag_found;
-}
 
-function valid_pos_lst(board,friendly,pos) {
-  let flag_found = false;
-  pos -= 1;
-  while (pos % 8 != 0 && board[pos] != undefined) {
-    if (board[pos].className == friendly) {flag_found = true; break;}
-    if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
-    pos -= 1;
-  }
-  return flag_found;
-}
-
-/*----------------------------------------------------------------------------*/
-
+/*
+  Flips enemy game pieces in row,column and diagonals if found friendly
+  game piece at the far end of that row,column and/or diagonals.
+  ex:
+     F -- E -- E -- F
+*/
 function flip_enemy(board, pos, friendly, flg_score) {
   let enemy, update_score;
   friendly == "dotp1" ? (enemy="dotp2",update_score=counter_p1) : (enemy="dotp1",update_score=counter_p2)
   for (let i = 7; i < 10; i++) {
-    if (valid_pos_upper(board,friendly,pos,i) == true) {
-      flip_upper(board,friendly,enemy,pos,i,update_score,flg_score);
+    if (valid_pos_all(board,friendly,pos,i,1) == true) {
+      flip_all(board,friendly,enemy,pos,i,update_score,flg_score,1);
     }
-    if (valid_pos_lower(board,friendly,pos,i) == true) {
-      flip_lower(board,friendly,enemy,pos,i,update_score,flg_score);
+    if (valid_pos_all(board,friendly,pos,i,2) == true) {
+      flip_all(board,friendly,enemy,pos,i,update_score,flg_score,2);
     }
   }
-  if (valid_pos_nxt(board,friendly,pos) == true) {
-    flip_nxt(board,friendly,enemy,pos,update_score,flg_score);
+  if (valid_pos_all(board,friendly,pos,1,3) == true) {
+    flip_all(board,friendly,enemy,pos,1,update_score,flg_score,3);
   }
-  if (valid_pos_lst(board,friendly,pos) == true) {
-    flip_lst(board,friendly,enemy,pos,update_score,flg_score);
+  if (valid_pos_all(board,friendly,pos,1,4) == true) {
+    flip_all(board,friendly,enemy,pos,1,update_score,flg_score,4);
   }
 }
 
-function flip_upper(board, friendly, enemy, pos, i, score, flg_score) {
-  board[pos].className = friendly;                      // Update
-  pos -= i;
-  while (pos >= 0 && board[pos].className != friendly) {
-    if (board[pos].className == enemy) {
-      board[pos].className = friendly;
-      if (flg_score==1)
-        score.innerHTML++;
-    }
-    pos -= i;
-  }
-}
-
-function flip_lower(board, friendly, enemy, pos, i, score, flg_score) {
+/*
+  Auxiliary function to flip_enemy that flips game pieces in spific row,column
+  and or diagonals (based on type, 1 -> upper | 2 -> lower | 3 -> next | 4 -> last).
+*/
+function flip_all(board, friendly, enemy, pos, i, score, flg_score, type) {
   board[pos].className = friendly;
-  pos += i;
-  while (pos < 64 && board[pos].className != friendly) {
-    if (board[pos].className == enemy) {
-      board[pos].className = friendly;
-      if (flg_score==1)
-        score.innerHTML++;
-    }
-    pos += i;
+  switch (type) {
+    case 1:       // Flip upper
+        pos -= i;
+        while (pos >= 0 && board[pos].className != friendly) {
+          if (board[pos].className == enemy) {
+            board[pos].className = friendly;
+            if (flg_score==1)
+              score.innerHTML++;
+          }
+          pos -= i;
+        }
+        break;
+    case 2:       // Flip lower
+        pos += i;
+        while (pos < 64 && board[pos].className != friendly) {
+          if (board[pos].className == enemy) {
+            board[pos].className = friendly;
+            if (flg_score==1)
+              score.innerHTML++;
+          }
+          pos += i;
+        }
+        break;
+    case 3:       // Flip next
+        let current_line = lookup_line.get(pos);
+        pos += i;
+        let next_line = lookup_line.get(pos);
+        while (current_line == next_line && board[pos].className != friendly) {
+          if (board[pos].className == enemy) {
+            board[pos].className = friendly;
+            if (flg_score==1)
+              score.innerHTML++;
+          }
+          pos += i;
+          next_line = lookup_line.get(pos);
+        }
+        break;
+    case 4:       // Flip last
+        let current_lin = lookup_line.get(pos);
+        pos -= i;
+        let lst_line = lookup_line.get(pos);
+        while (current_lin == lst_line && board[pos].className != friendly) {
+          if (board[pos].className == enemy) {
+            board[pos].className = friendly;
+            if (flg_score==1)
+              score.innerHTML++;
+          }
+          pos -= i;
+          lst_line = lookup_line.get(pos);
+        }
+        break;
+    default:
+  }
+
+}
+
+// Fetch - POST
+async function getFetch(url,payLoad) {
+  try {
+    const response = await fetch(url, {method: 'POST', body: JSON.stringify(payLoad)});
+    if (!response.ok)
+      throw new Error(response.statusText);
+    const data = await response.json()      // Asynchronous
+    return data;
+  } catch(error) {
+    return error;
   }
 }
 
-function flip_nxt(board, friendly, enemy, pos, score, flg_score) {
-  board[pos].className = friendly;
-  pos += 1;
-  while (pos % 8 != 0 && board[pos].className != friendly) {
-    if (board[pos].className == enemy) {
-      board[pos].className = friendly;
-      if (flg_score==1)
-        score.innerHTML++;
-    }
-    pos += 1;
-  }
-}
-
-function flip_lst(board, friendly, enemy, pos, score, flg_score) {
-  board[pos].className = friendly;
-  pos -= 1;
-  while (pos % 8 != 0 && board[pos].className != friendly) {
-    if (board[pos].className == enemy) {
-      board[pos].className = friendly;
-      if (flg_score==1)
-        score.innerHTML++;
-    }
-    pos -= 1;
-  }
-}
-
-/*----------------------------------------------------------------------------*/

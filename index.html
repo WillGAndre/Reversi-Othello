@@ -33,7 +33,7 @@
           </div>
         </div>
         <div id="scr_checkbox">
-          <label for="numberOfPlayers1"><i>1 player:</i></label><input id="numberOfPlayers1" type="radio" name="numberOfPlayers" checked>
+          <label for="numberOfPlayers1"><i>1 player:</i></label><input id="numberOfPlayers1" type="radio" name="numberOfPlayers">
           <label for="numberOfPlayers2"><i>2 players:</i></label><input id="numberOfPlayers2" type="radio" name="numberOfPlayers">
         </div>
         <div id="scr_button">
@@ -44,17 +44,18 @@
     </div>
     <div id="authentication" class="rightS_table">
       <div id="autBox">
-        <form id="formLogin" action="">
+        <form id="formLogin">
           <u><i>Authentication:</i></u><br><br>
           <label for="autUsername"><i>Name:</i></label><input id="autUsername" type="text"><br><br>
           <label for="autPassword"><i>Password:</i></label><input id="autPassword" type="password"><br><br>
-          <input type="button" value="Login" onclick="onLoginSubmitPress()">
+          <input id="login_bt" type="button" value="Login" onclick="onLoginSubmitPress()">
           <!--<input type="reset">-->
         </form>
 
         <div id="userInformation">
           <i>Welcome: </i> <span id="userUsername"></span><br><br>
-          <input type="button" value="Logout" onclick="onLogoutUserPress()">
+          <input type="button" value="Logout" onclick="onLogoutUserPress()"><br><br>
+          <iframe id="update_frame" name="update_frame"></iframe>
         </div>
       </div>
       <div id="HOF">
