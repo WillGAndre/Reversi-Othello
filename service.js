@@ -47,7 +47,7 @@ function Service() {
         return await this.post(this.ServerUrl + this.APIEndPoints.leave, data);
     }
     this.register = async function (data) {
-        return await this.post(this.ServerUrl + this.APIEndPoints.register, data);
+        return await this.post(this.ServerUrl + this.APIEndPoints.register, data)
     }
     this.join = async function (data) {
         return await this.post(this.ServerUrl + this.APIEndPoints.join, data);
@@ -56,10 +56,7 @@ function Service() {
     this.post = async function (url, payload) {
         try {
             const response = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
-            if (!response.ok)
-                throw new Error(response.statusText);
-            const data = await response.json();
-            return data;
+            return await response.json();
         } catch (error) {
             return error;
         }

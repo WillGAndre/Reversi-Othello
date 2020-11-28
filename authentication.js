@@ -8,13 +8,13 @@
 let CURRENTUSER = null;
 _initializeAuthentication();
 
-const login_fetch = document.getElementById("login_bt");
+// const login_fetch = document.getElementById("login_bt");
 /* Register player to tw server */
-login_fetch.addEventListener("click", function() {
-  if (document.getElementById("userInformation").hidden == false) {
-    getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
-  }
-}, false);
+// login_fetch.addEventListener("click", function() {
+//   if (document.getElementById("userInformation").hidden == false) {
+//     getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
+//   }
+// }, false);
 
 function onLoginSubmitPress(){
 	let username = document.getElementById("autUsername").value.trim();
@@ -28,23 +28,32 @@ function onLoginSubmitPress(){
 		return;
 	}
 
-	let users = JSON.parse(localStorage.getItem("users")); 
-	
-	let userIndex = users.findIndex(x => x.username === username);
-	let user = users[userIndex];
-	if(user){ // user exists;
-		if(password === user.password){
-			_setCurrentUser(user);
-			loginSuccess();
-		} else {
-			alert("User or password are incorrect");
+	othelloService.register({
+		nick: username,
+		pass: password
+	}).then(data => {
+		if(!data.error){
+			
 		}
-	} else { // otherwise
-		_setCurrentUser(new User(username, password));
-		users.push(CURRENTUSER);
-		localStorage.setItem("users", JSON.stringify(users));
-		loginSuccess();
-	}
+	})
+
+	// let users = JSON.parse(localStorage.getItem("users")); 
+	
+	// let userIndex = users.findIndex(x => x.username === username);
+	// let user = users[userIndex];
+	// if(user){ // user exists;
+	// 	if(password === user.password){
+	// 		_setCurrentUser(user);
+	// 		loginSuccess();
+	// 	} else {
+	// 		alert("User or password are incorrect");
+	// 	}
+	// } else { // otherwise
+	// 	_setCurrentUser(new User(username, password));
+	// 	users.push(CURRENTUSER);
+	// 	localStorage.setItem("users", JSON.stringify(users));
+	// 	loginSuccess();
+	// }
 }
 function loginSuccess(){
 	document.getElementById("formLogin").hidden = true;
@@ -79,6 +88,55 @@ function buildHOFTableBody(){
 		tableBody.appendChild((new HighScoreRow(scores[i].username, scores[i].score)).toHTMLRow());
 	}
 }
+
+/**
+ * Private functions
+ */
+// This funtion will validate if the localStorage has already been used and initialize it if necessary.
+function _initializeAuthentication(){
+	//Define local storage basis
+	let initialUsers = [new User("guest", "")];
+	if(!localStorage.getItem("users")){
+		localStorage.setItem("users", JSON.stringify(initialUsers));
+	}
+	if(!localStorage.getItem("currentUser")){
+		localStorage.setItem("currentUser", JSON.stringify(initialUsers[0]));
+	}
+	
+	// Define default CURRENTUSER
+	let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+	_setCurrentUser(currentUser);
+	
+	// Hide user information
+	if(CURRENTUSER.username === "guest"){
+		document.getElementById("userInformation").hidden = true;
+	} else {
+		loginSuccess();
+	}
+	// Build Hall of Fame
+	buildHOFTableBody();
+}
+
+function _setCurrentUser(user){
+	CURRENTUSER = new User(user.username, user.password);
+	CURRENTUSER.totalPoints = user.totalPoints;
+	CURRENTUSER.scores = user.scores;
+	localStorage.setItem("currentUser", JSON.stringify(CURRENTUSER));
+}
+
+function _getGuestUser(){
+	let users = JSON.parse(localStorage.getItem("users"));
+	let userIndex = users.findIndex(x => x.username === "guest");
+	let user = users[userIndex];
+
+	let ret = new User(user.username, user.password);
+	ret.scores = user.scores;
+	ret.totalPoints = user.totalPoints;
+
+	return ret;
+}
+
+// ------------------------------------------------------------------------
 
 /**
  * HOF table "classes"
@@ -138,52 +196,3 @@ function Score(points, date){
 	this.points = points;
 	this.date = date;
 }
-
-/**
- * Private functions
- */
-// This funtion will validate if the localStorage has already been used and initialize it if necessary.
-function _initializeAuthentication(){
-	//Define local storage basis
-	let initialUsers = [new User("guest", "")];
-	if(!localStorage.getItem("users")){
-		localStorage.setItem("users", JSON.stringify(initialUsers));
-	}
-	if(!localStorage.getItem("currentUser")){
-		localStorage.setItem("currentUser", JSON.stringify(initialUsers[0]));
-	}
-	
-	// Define default CURRENTUSER
-	let currentUser = JSON.parse(localStorage.getItem("currentUser"));
-	_setCurrentUser(currentUser);
-	
-	// Hide user information
-	if(CURRENTUSER.username === "guest"){
-		document.getElementById("userInformation").hidden = true;
-	} else {
-		loginSuccess();
-	}
-	// Build Hall of Fame
-	buildHOFTableBody();
-}
-
-function _setCurrentUser(user){
-	CURRENTUSER = new User(user.username, user.password);
-	CURRENTUSER.totalPoints = user.totalPoints;
-	CURRENTUSER.scores = user.scores;
-	localStorage.setItem("currentUser", JSON.stringify(CURRENTUSER));
-}
-
-function _getGuestUser(){
-	let users = JSON.parse(localStorage.getItem("users"));
-	let userIndex = users.findIndex(x => x.username === "guest");
-	let user = users[userIndex];
-
-	let ret = new User(user.username, user.password);
-	ret.scores = user.scores;
-	ret.totalPoints = user.totalPoints;
-
-	return ret;
-}
-
-// ------------------------------------------------------------------------
