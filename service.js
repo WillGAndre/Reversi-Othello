@@ -13,16 +13,18 @@ function Service() {
 
     // GET
     this.events = null;
-    this.update = async function (data) {
+    this.msgs = [];
+    this.update = async function (data,fnCallback) {
         let ret = null;
         
         this.events = new EventSource(this.ServerUrl + this.APIEndPoints.update + this.encodeQueryParams(data));
         this.events.onopen = function () {
             console.log("Connection is open");
         }
-        this.events.onmessage = function (event) {
-            ret = JSON.parse(event.data);
-        }
+        this.events.onmessage = fnCallback;
+        // this.events.onmessage = function (event) {
+        //     msgs.push(JSON.parse(event.data));
+        // }
         this.events.onerror = function () {
             console.log("Error in connection " + this.events.readyState);
             this.events.close();
@@ -70,7 +72,7 @@ function Service() {
             for (const keyValue of aEntries) {
                 ret += keyValue[0] + "=" + encodeURIComponent(keyValue[1]) + "&";
             }
-            ret = ret.substring(0, ret.length - 2);
+            ret = ret.substring(0, ret.length - 1);
         }
         return ret;
     }
