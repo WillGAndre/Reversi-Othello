@@ -1,21 +1,25 @@
 let events = null;
 
 async function gameFlux() {
-	let info_join = await othelloService.join({'group': 15, 'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
-	let usr_color = info_join.color;
-	let game_hash = info_join.game;
-	
-	let info_update = await othelloService.update({nick: CURRENTUSER.username, game: game_hash}, processMsg);
+  let info_join = await othelloService.join({
+    'group': 15,
+    'nick': CURRENTUSER.username,
+    'pass': CURRENTUSER.password
+  }, this.processMsg);
+  let usr_color = info_join.color;
+  let game_hash = info_join.game;
 
-	// if (othelloService.events.readyState == EventSource.OPEN) {
-	// 	let flg_end = false;
-	// 	console.log("test");	
-	// }
+  // let info_update = await othelloService.update({nick: CURRENTUSER.username, game: game_hash}, processMsg);
+
+  // if (othelloService.events.readyState == EventSource.OPEN) {
+  // 	let flg_end = false;
+  // 	console.log("test");	
+  // }
 }
 
 function processMsg(msg) {
-	let msg = JSON.parse(msg.data);
-	console.log(msg);
+  let data = JSON.parse(msg.data);
+  console.log(data);
 }
 
 
@@ -58,14 +62,14 @@ function processMsg(msg) {
 // }
 
 // Fetch - POST
-async function getFetch(url,payLoad) {
+async function getFetch(url, payLoad) {
   try {
-    const response = await fetch(url, {method: 'POST', body: JSON.stringify(payLoad)});
+    const response = await fetch(url, { method: 'POST', body: JSON.stringify(payLoad) });
     if (!response.ok)
       throw new Error(response.statusText);
     const data = await response.json()      // Asynchronous
     return data;
-  } catch(error) {
+  } catch (error) {
     return error;
   }
 }

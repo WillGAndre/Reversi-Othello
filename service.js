@@ -14,31 +14,34 @@ function Service() {
     // GET
     this.events = null;
     this.msgs = [];
-    this.update = async function (data,fnCallback) {
+    this.update = async function (data, fnCallback) {
         let ret = null;
-        
+
         this.events = new EventSource(this.ServerUrl + this.APIEndPoints.update + this.encodeQueryParams(data));
         this.events.onopen = function () {
             console.log("Connection is open");
         }
         this.events.onmessage = fnCallback;
-        // this.events.onmessage = function (event) {
-        //     msgs.push(JSON.parse(event.data));
-        // }
         this.events.onerror = function () {
-            console.log("Error in connection " + this.events.readyState);
             this.events.close();
-            setInterval(() => {
-                if (this.events.readyState == EventSource.CLOSED) {
-                    this.update(data);
-                }
-            }, 4000);
-        }
+        }.bind(this)
+
         // this.events.close();       Must close when game ends
         return ret;
     }
 
     // POST
+    this.join = async function (data, fnCallback) {
+        const ret = await this.post(this.ServerUrl + this.APIEndPoints.join, data).then(
+            (oJoinData) => {
+                this.update({
+                    nick: data.nick,
+                    game: oJoinData.game
+                }, fnCallback);
+            }
+        );
+        return ret;
+    }
     this.notify = async function (data) {
         return await this.post(this.ServerUrl + this.APIEndPoints.notify, data);
     }
@@ -50,9 +53,6 @@ function Service() {
     }
     this.register = async function (data) {
         return await this.post(this.ServerUrl + this.APIEndPoints.register, data)
-    }
-    this.join = async function (data) {
-        return await this.post(this.ServerUrl + this.APIEndPoints.join, data);
     }
 
     this.post = async function (url, payload) {
