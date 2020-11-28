@@ -12,7 +12,7 @@ const login_fetch = document.getElementById("login_bt");
 /* Register player to tw server */
 login_fetch.addEventListener("click", function() {
   if (document.getElementById("userInformation").hidden == false) {
-    getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
+  	getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
   }
 }, false);
 

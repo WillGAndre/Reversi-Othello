@@ -116,7 +116,8 @@ window.onload = function() {
       alert("Login required!");
       pl2_checked.checked = false;
     } else {
-      joinGame();
+      // joinGame();
+      gameFlux();
     }
   }, false);
 }
