@@ -37,23 +37,23 @@ function onLoginSubmitPress(){
 		}
 	})
 
-	// let users = JSON.parse(localStorage.getItem("users")); 
+	let users = JSON.parse(localStorage.getItem("users")); 
 	
-	// let userIndex = users.findIndex(x => x.username === username);
-	// let user = users[userIndex];
-	// if(user){ // user exists;
-	// 	if(password === user.password){
-	// 		_setCurrentUser(user);
-	// 		loginSuccess();
-	// 	} else {
-	// 		alert("User or password are incorrect");
-	// 	}
-	// } else { // otherwise
-	// 	_setCurrentUser(new User(username, password));
-	// 	users.push(CURRENTUSER);
-	// 	localStorage.setItem("users", JSON.stringify(users));
-	// 	loginSuccess();
-	// }
+	let userIndex = users.findIndex(x => x.username === username);
+	let user = users[userIndex];
+	if(user){ // user exists;
+		if(password === user.password){
+			_setCurrentUser(user);
+			loginSuccess();
+		} else {
+			alert("User or password are incorrect");
+		}
+	} else { // otherwise
+		_setCurrentUser(new User(username, password));
+		users.push(CURRENTUSER);
+		localStorage.setItem("users", JSON.stringify(users));
+		loginSuccess();
+	}
 }
 function loginSuccess(){
 	document.getElementById("formLogin").hidden = true;

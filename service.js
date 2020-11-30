@@ -31,6 +31,8 @@ function Service() {
     }
 
     // POST
+    this.color = null;
+    this.game = null;
     this.join = async function (data, fnCallback) {
         const ret = await this.post(this.ServerUrl + this.APIEndPoints.join, data).then(
             (oJoinData) => {
@@ -38,6 +40,8 @@ function Service() {
                     nick: data.nick,
                     game: oJoinData.game
                 }, fnCallback);
+                this.color = oJoinData.color;
+                this.game = oJoinData.game;
             }
         );
         return ret;

@@ -14,7 +14,7 @@ onButtonInstructionsClick = function(oEvent) {
   corner.
   (More user testing to identify bug!)
 */
-
+let gameboard = null;
 const pl1_checked = document.getElementById("numberOfPlayers1");
 const pl2_checked = document.getElementById("numberOfPlayers2");
 const restart_bt = document.getElementById("restart");
@@ -30,10 +30,9 @@ let curr_player_dot = "dotp1";                                    // Type of dot
 let diff_value = 1;                                               // Difficulty value (1 or 2)
 let lookup_line = create_lookupLine();
 let check_win_flag = true;
-let game_hash = null;                                             // Game hash for multiplayer
 
 window.onload = function() {
-  const gameboard = new Reversi("base");
+  gameboard = new Reversi("base");
   counter_p1.innerHTML = 2;                                       //  init score
   counter_p2.innerHTML = 2;
   let pass_p1 = false;                                            //  Player 1 passes round (if true)
@@ -106,17 +105,10 @@ window.onload = function() {
   }, false);
 
   pl2_checked.addEventListener("click", function() {
-    /*
-      1. Player needs to login in
-      2. Player needs to join game
-      3. Player waits for update in frame -> 2 possibilities Waiting and Play
-      4. Game flow...
-    */
     if (document.getElementById("userInformation").hidden == true) {
       alert("Login required!");
       pl2_checked.checked = false;
     } else {
-      // joinGame();
       gameFlux();
     }
   }, false);
@@ -186,9 +178,9 @@ class Reversi {
       cell.id = i;
       board.appendChild(cell);
       if (i==27 || i==36) {
-        dot.className = "dotp1";
-      } else if (i==28 || i==35) {
         dot.className = "dotp2";
+      } else if (i==28 || i==35) {
+        dot.className = "dotp1";
       }
       cell.appendChild(dot);
 

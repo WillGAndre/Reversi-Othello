@@ -1,4 +1,12 @@
-let events = null;
+// color_player = "black";  
+// curr_player_dot = "dotp1";
+// game_hash -> othelloService.game;
+
+/* 
+  Fix win and add Register option
+*/
+let pass_p1 = false;
+let pass_p2 = false;
 
 async function gameFlux() {
   let info_join = await othelloService.join({
@@ -6,70 +14,112 @@ async function gameFlux() {
     'nick': CURRENTUSER.username,
     'pass': CURRENTUSER.password
   }, this.processMsg);
-  let usr_color = info_join.color;
-  let game_hash = info_join.game;
-
-  // let info_update = await othelloService.update({nick: CURRENTUSER.username, game: game_hash}, processMsg);
-
-  // if (othelloService.events.readyState == EventSource.OPEN) {
-  // 	let flg_end = false;
-  // 	console.log("test");	
-  // }
+  if (othelloService.color == "light") {  // Current player is second 
+    color_player = "white";
+    curr_player_dot = "dotp2";
+    player_color.checked = false;
+    current_pl.innerHTML = "White";
+  }
 }
 
 function processMsg(msg) {
   let data = JSON.parse(msg.data);
-  console.log(data);
-}
+  let winner = data.winner;
+  let empty = data.count.empty;
+  let count_p1 = data.count.dark;
+  let count_p2 = data.count.light;
+  if (winner == null || !(winner == null && empty == 0) || count_p1 == 0 || count_p2 == 0) {
+    let board = data.board;
+    let turn = data.turn;
+    iterateGame(board, count_p1, count_p2);
 
+    if (turn == CURRENTUSER.username) {
+      validate_position(curr_player_dot,gameboard.data_dots) == false ? pass_p1 = true : pass_p1 = false 
 
-// async function joinGame() {
-//   let joinAns = getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/join",{'group': 15, 'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
-//     return await joinAns;
-// }
+      let cells = document.getElementsByClassName("cell");
+      let candidate_dots  = document.getElementsByClassName("dotplace"); 
+      for (let i = 0; i < cells.length; i++) {
+        cells[i].onclick = function() {
+          if (cells[i].firstElementChild.className == "dotplace") {
+            let index = -1;
+            let cell_index = -1;
+            for (let j = 0; j < candidate_dots.length; j++) {
+              if (candidate_dots[j].parentElement.id == cells[i].id) {
+                index = j;
+                cell_index = i;
+                break;
+              }
+            }
+            if (index >= 0 && !pass_p1) {
+              let cell = candidate_dots[index].parentElement;
 
-// function update(value) {
-// 	if (value.error == null) {
-//       // color_player = value.color;
-//       // game_hash = value.game;
-//       return {color_player: value.color, game_hash: value.game};
-//     } else {
-//       setInterval(() => {joinGame();}, 4000);
-//     }
-// }
-
-// function playMultiGame(game_hash) {
-//   let url = "http://twserver.alunos.dcc.fc.up.pt:8008/update?nick="+CURRENTUSER.username+"&game="+game_hash;
-//   events = new EventSource(url);
-//   let data = 0;
-//   events.onopen = function() {
-//     console.log("Connection is open");
-//   }
-//   events.onmessage = function(event) {
-//     data = JSON.parse(event.data);
-//   }
-//   events.onerror = function() {
-//     console.log("Error in connection " + events.readyState);
-//     events.close();
-//     setInterval(() => {
-//       if (events.readyState == EventSource.CLOSED) {
-//         playMultiGame(game_hash);
-//       }
-//     }, 4000);
-//   }
-//   // events.close();       Must close when game ends
-//   return data;
-// }
-
-// Fetch - POST
-async function getFetch(url, payLoad) {
-  try {
-    const response = await fetch(url, { method: 'POST', body: JSON.stringify(payLoad) });
-    if (!response.ok)
-      throw new Error(response.statusText);
-    const data = await response.json()      // Asynchronous
-    return data;
-  } catch (error) {
-    return error;
+              let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
+              flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 0);
+              clear_board(candidate_dots);
+              
+              let move = findMove(cell_index);
+              othelloService.notify({
+                'nick': CURRENTUSER.username,
+                'pass': CURRENTUSER.password,
+                'game': othelloService.game,
+                'move': move
+              }); 
+            } else {
+              othelloService.notify({
+                'nick': CURRENTUSER.username,
+                'pass': CURRENTUSER.password,
+                'game': othelloService.game,
+                'move': null
+              });
+            }
+            current_pl.innerHTML == "White" ? current_pl.innerHTML = "Black" : current_pl.innerHTML = "White"
+          }
+        }
+      }
+    }
+  } else {
+    if (empty == 0 && winner == null) {
+      alert("Tie!");
+    } else {
+      alert(winner+" won!");
+    }
   }
 }
+
+function findMove(index) {
+  let row = lookup_line.get(index)-1;
+  let col = -1;
+  let count_col = 0; // 0, 8, 16, 24, 32, 40, 48, 56
+  let adder = 0;
+  while (count_col != 8) {
+    if (index == (0+adder) || index == (8+adder) || index == (16+adder) || index == (24+adder) || index == (32+adder) 
+      || index == (40+adder) || index == (48+adder) || index == (56+adder)) {
+      col = count_col;
+      break;
+    }
+    adder++;
+    count_col++;
+  }
+  return {'row': row, 'column': col};
+}
+
+function iterateGame(board, count_p1, count_p2) {
+  let l = 0;
+  counter_p1.innerHTML = count_p1;  
+  counter_p2.innerHTML = count_p2;
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      if (l < 64) {
+        if (board[i][j] == "dark") {
+          gameboard.data_dots[l].className = "dotp1";
+        } else if (board[i][j] == "light") {
+          gameboard.data_dots[l].className = "dotp2";
+        }
+      } else {return;}
+      l++;
+    }
+  }
+}
+
+
+// {"board":[["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","light","dark","empty","empty","empty"],["empty","empty","empty","dark","light","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"]],"count":{"dark":2,"light":2,"empty":60},"turn":"gui"}	
