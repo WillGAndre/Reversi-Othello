@@ -8,60 +8,46 @@
 let CURRENTUSER = null;
 _initializeAuthentication();
 
-// const login_fetch = document.getElementById("login_bt");
-/* Register player to tw server */
-// login_fetch.addEventListener("click", function() {
-//   if (document.getElementById("userInformation").hidden == false) {
-//     getFetch("http://twserver.alunos.dcc.fc.up.pt:8008/register",{'nick': CURRENTUSER.username, 'pass': CURRENTUSER.password});
-//   }
-// }, false);
-
-function onLoginSubmitPress(){
+function onLoginSubmitPress() {
 	let username = document.getElementById("autUsername").value.trim();
 	let password = document.getElementById("autPassword").value;
 
-	if(username === "guest"){
+	if (username === "guest") {
 		alert("You cannot use this username");
 		return;
 	}
-	if(username === "" || password === ""){
+	if (username === "" || password === "") {
 		return;
 	}
 
+	// This is the workaround we found to pass the username and the password t the _registerSuccess
+	let fnRegisterSuccess = this._registerSuccess.bind(this, username, password);
 	othelloService.register({
 		nick: username,
 		pass: password
 	}).then(data => {
-		if(!data.error){
-			
-		}
-	})
-
-	let users = JSON.parse(localStorage.getItem("users")); 
-	
-	let userIndex = users.findIndex(x => x.username === username);
-	let user = users[userIndex];
-	if(user){ // user exists;
-		if(password === user.password){
-			_setCurrentUser(user);
-			loginSuccess();
+		if (!data.error) {
+			fnRegisterSuccess.call();
 		} else {
-			alert("User or password are incorrect");
+			alert(data.error);
 		}
-	} else { // otherwise
-		_setCurrentUser(new User(username, password));
-		users.push(CURRENTUSER);
-		localStorage.setItem("users", JSON.stringify(users));
-		loginSuccess();
-	}
+	});
 }
-function loginSuccess(){
+
+function loginSuccess() {
 	document.getElementById("formLogin").hidden = true;
 	document.getElementById("userInformation").hidden = false;
 	document.getElementById("userUsername").innerText = CURRENTUSER.username;
 }
 
-function onLogoutUserPress(){
+function onLogoutUserPress() {
+	if(othelloService.game){
+		othelloService.leave({
+			game: othelloService.game,
+			nick: CURRENTUSER.username,
+			pass: CURRENTUSER.password
+		})
+	}
 	_setCurrentUser(_getGuestUser());
 
 	document.getElementById("formLogin").hidden = false;
@@ -69,18 +55,18 @@ function onLogoutUserPress(){
 	pl2_checked.checked = false;
 }
 
-function buildHOFTableBody(){
+function buildHOFTableBody() {
 	let scores = [];
 	// Sorting all the existing scores in descendant order
 	JSON.parse(localStorage.getItem("users")).forEach(x => x.scores.forEach(y => scores.push({
 		username: x.username,
 		score: y
 	})));
-	scores = scores.sort((x,y) => x.score.points > y.score.points ? -1 : (x.score.points < y.score.points ? 1 : 0));
+	scores = scores.sort((x, y) => x.score.points > y.score.points ? -1 : (x.score.points < y.score.points ? 1 : 0));
 
 	let tableBody = document.getElementById("HOF_body");
 	// Remove existing scores
-	while(tableBody.firstChild){
+	while (tableBody.firstChild) {
 		tableBody.removeChild(tableBody.firstChild);
 	}
 	// Add the top 5 scores
@@ -93,38 +79,65 @@ function buildHOFTableBody(){
  * Private functions
  */
 // This funtion will validate if the localStorage has already been used and initialize it if necessary.
-function _initializeAuthentication(){
+function _initializeAuthentication() {
 	//Define local storage basis
 	let initialUsers = [new User("guest", "")];
-	if(!localStorage.getItem("users")){
+	if (!localStorage.getItem("users")) {
 		localStorage.setItem("users", JSON.stringify(initialUsers));
 	}
-	if(!localStorage.getItem("currentUser")){
+	if (!localStorage.getItem("currentUser")) {
 		localStorage.setItem("currentUser", JSON.stringify(initialUsers[0]));
 	}
-	
+
 	// Define default CURRENTUSER
 	let currentUser = JSON.parse(localStorage.getItem("currentUser"));
-	_setCurrentUser(currentUser);
-	
+	// _setCurrentUser(currentUser);
+
 	// Hide user information
-	if(CURRENTUSER.username === "guest"){
+	if (currentUser.username === "guest") {
 		document.getElementById("userInformation").hidden = true;
 	} else {
-		loginSuccess();
+		// This is the workaround we found to pass the username and the password to the _registerSuccess function
+		let fnRegisterSuccess = this._registerSuccess.bind(this, currentUser.username, currentUser.password);
+		othelloService.register({
+			nick: currentUser.username,
+			pass: currentUser.password
+		}).then(data => {
+			if (!data.error) {
+				fnRegisterSuccess.call();
+			} else {
+				alert(data.error);
+			}
+		});
 	}
 	// Build Hall of Fame
 	buildHOFTableBody();
 }
 
-function _setCurrentUser(user){
+function _registerSuccess(username, password) {
+	let users = JSON.parse(localStorage.getItem("users"));
+
+	let userIndex = users.findIndex(x => x.username === username);
+	let user = users[userIndex];
+
+	if (user) { // user exists
+		_setCurrentUser(user);
+	} else { // otherwise
+		_setCurrentUser(new User(username, password));
+		users.push(CURRENTUSER);
+		localStorage.setItem("users", JSON.stringify(users));
+	}
+	loginSuccess();
+}
+
+function _setCurrentUser(user) {
 	CURRENTUSER = new User(user.username, user.password);
 	CURRENTUSER.totalPoints = user.totalPoints;
 	CURRENTUSER.scores = user.scores;
 	localStorage.setItem("currentUser", JSON.stringify(CURRENTUSER));
 }
 
-function _getGuestUser(){
+function _getGuestUser() {
 	let users = JSON.parse(localStorage.getItem("users"));
 	let userIndex = users.findIndex(x => x.username === "guest");
 	let user = users[userIndex];
@@ -141,44 +154,44 @@ function _getGuestUser(){
 /**
  * HOF table "classes"
  */
-function HighScoreRow(username, score){
+function HighScoreRow(username, score) {
 	this.username = username;
 	this.score = score.points;
 	this.date = score.date;
 
-	this.toHTMLRow = function(){
-        let ret = document.createElement("tr");
-        let tableCell;
+	this.toHTMLRow = function () {
+		let ret = document.createElement("tr");
+		let tableCell;
 
-        tableCell = document.createElement("td");
-        tableCell.textContent = this.username;
-        ret.appendChild(tableCell);
+		tableCell = document.createElement("td");
+		tableCell.textContent = this.username;
+		ret.appendChild(tableCell);
 
-        tableCell = document.createElement("td");
-        tableCell.textContent = this.score;
-        ret.appendChild(tableCell);
+		tableCell = document.createElement("td");
+		tableCell.textContent = this.score;
+		ret.appendChild(tableCell);
 
-        tableCell = document.createElement("td");
-        tableCell.textContent = new Date(this.date).toLocaleDateString();
-        ret.appendChild(tableCell);
-        
-        return ret;
+		tableCell = document.createElement("td");
+		tableCell.textContent = new Date(this.date).toLocaleDateString();
+		ret.appendChild(tableCell);
+
+		return ret;
 	}
 }
 
 /**
  * User "classes"
  */
-function User(username, password){
+function User(username, password) {
 	this.username = username;
 	this.password = password;
 	this.totalPoints = 0;
 	this.scores = [];
 
-	this.addScore = function(points){
+	this.addScore = function (points) {
 		this.totalPoints += points;
 		this.scores.push(new Score(points, new Date().toISOString()));
-		
+
 		// Update Local Storage
 		let users = JSON.parse(localStorage.getItem("users"));
 		let userIndex = users.findIndex(x => x.username === this.username);
@@ -192,7 +205,7 @@ function User(username, password){
 		buildHOFTableBody();
 	}
 }
-function Score(points, date){
+function Score(points, date) {
 	this.points = points;
 	this.date = date;
 }
