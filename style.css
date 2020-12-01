@@ -14,15 +14,13 @@ body {
 /*-------------------------------------------------------------------------*/
 
 #instructions {
+  position: absolute;
+  z-index: 999;
   width: 96.25%;
   border: 0.125em solid;
   background-color: rgb(242, 243, 244);
-  margin-top: 1.5em;
-  margin-right: 1em;
-  margin-left: 1%;
-  position: sticky;
+  margin-top: 13.5em;
   padding-left: 1em;
-  padding-right: 1.1em;
 }
 
 .rightS_table {
