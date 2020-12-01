@@ -5,6 +5,14 @@
  *  	currentUser - This will store as a string, the current user. Like a login "remember me" is set to true.
  */
 
+ /**
+  * Some points about the authentication:
+  * - We know that it isn't secure to store the user password in the localStorage but we wanted to implement some sort of login "remember me".
+  * An alternative would be to create a cockie with expiration time and in the backend we would validate it. But we don't have access to backend.
+  * - We thought about what happens if the user changes password. The localStorage would not be updated... This point is a consequence of the other
+  * but since it isn't supposed to exist such functionality, it will not be a problem.
+  */
+
 let CURRENTUSER = null;
 _initializeAuthentication();
 
