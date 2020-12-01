@@ -49,18 +49,40 @@ function loginSuccess() {
 }
 
 function onLogoutUserPress() {
-	if(othelloService.game){
-		othelloService.leave({
-			game: othelloService.game,
-			nick: CURRENTUSER.username,
-			pass: CURRENTUSER.password
-		})
-	}
+	let username = CURRENTUSER.username;
+	let password = CURRENTUSER.password;
+
 	_setCurrentUser(_getGuestUser());
 
 	document.getElementById("formLogin").hidden = false;
 	document.getElementById("userInformation").hidden = true;
 	pl2_checked.checked = false;
+
+	if(othelloService.game){
+		othelloService.leave({
+			game: othelloService.game,
+			nick: username,
+			pass: password
+		}).then(data => {
+			othelloService.game = null;
+			window.location.reload();
+		});
+	}
+}
+
+function onLeaveGamePress(){
+	if(othelloService.game){
+		othelloService.leave({
+			game: othelloService.game,
+			nick: CURRENTUSER.username,
+			pass: CURRENTUSER.password
+		}).then(data => {
+			othelloService.game = null;
+			window.location.reload();
+		});
+	} else {
+		alert("You did not join any game yet")
+	}
 }
 
 function buildHOFTableBody() {
