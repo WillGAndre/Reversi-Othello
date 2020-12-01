@@ -1,12 +1,9 @@
-// color_player = "black";  
-// curr_player_dot = "dotp1";
-// game_hash -> othelloService.game;
+/*
 
-/* 
-  Fix win and add Register option
-*/
+  Fix current player bug (!!!)
+
+  */
 let pass_p1 = false;
-let pass_p2 = false;
 
 async function gameFlux() {
   let info_join = await othelloService.join({
@@ -18,7 +15,6 @@ async function gameFlux() {
     color_player = "white";
     curr_player_dot = "dotp2";
     player_color.checked = false;
-    current_pl.innerHTML = "White";
   }
 }
 
@@ -28,12 +24,13 @@ function processMsg(msg) {
   let empty = data.count.empty;
   let count_p1 = data.count.dark;
   let count_p2 = data.count.light;
-  if (winner == null || !(winner == null && empty == 0) || count_p1 == 0 || count_p2 == 0) {
+  if (winner === undefined && empty != 0 && count_p1 != 0 && count_p2 != 0) {
     let board = data.board;
     let turn = data.turn;
+    let skip = data.skip;
     iterateGame(board, count_p1, count_p2);
 
-    if (turn == CURRENTUSER.username) {
+    if (turn == CURRENTUSER.username && skip != CURRENTUSER.username) {
       validate_position(curr_player_dot,gameboard.data_dots) == false ? pass_p1 = true : pass_p1 = false 
 
       let cells = document.getElementsByClassName("cell");
@@ -64,25 +61,26 @@ function processMsg(msg) {
                 'game': othelloService.game,
                 'move': move
               }); 
-            } else {
-              othelloService.notify({
-                'nick': CURRENTUSER.username,
-                'pass': CURRENTUSER.password,
-                'game': othelloService.game,
-                'move': null
-              });
             }
-            current_pl.innerHTML == "White" ? current_pl.innerHTML = "Black" : current_pl.innerHTML = "White"
           }
         }
       }
+    } else if (skip == CURRENTUSER.username) {
+      othelloService.notify({
+        'nick': CURRENTUSER.username,
+        'pass': CURRENTUSER.password,
+        'game': othelloService.game,
+        'move': null
+      });
     }
+    current_pl.innerHTML == "Black" ? current_pl.innerHTML = "White" : current_pl.innerHTML = "Black"
   } else {
     if (empty == 0 && winner == null) {
       alert("Tie!");
     } else {
       alert(winner+" won!");
     }
+    othelloService.events.close();
   }
 }
 
@@ -120,6 +118,3 @@ function iterateGame(board, count_p1, count_p2) {
     }
   }
 }
-
-
-// {"board":[["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","light","dark","empty","empty","empty"],["empty","empty","empty","dark","light","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"],["empty","empty","empty","empty","empty","empty","empty","empty"]],"count":{"dark":2,"light":2,"empty":60},"turn":"gui"}	
