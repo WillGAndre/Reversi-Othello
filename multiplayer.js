@@ -1,9 +1,11 @@
 /*
 
   Fix current player bug (!!!)
+  Fix validate positions bug (!!!)
 
-  */
+*/
 let pass_p1 = false;
+let skip_change = true;
 
 async function gameFlux() {
   let info_join = await othelloService.join({
@@ -21,66 +23,77 @@ async function gameFlux() {
 function processMsg(msg) {
   let data = JSON.parse(msg.data);
   let winner = data.winner;
-  let empty = data.count.empty;
-  let count_p1 = data.count.dark;
-  let count_p2 = data.count.light;
-  if (winner === undefined && empty != 0 && count_p1 != 0 && count_p2 != 0) {
-    let board = data.board;
-    let turn = data.turn;
-    let skip = data.skip;
-    iterateGame(board, count_p1, count_p2);
+  if (winner === undefined) {
+    let empty = data.count.empty;
+    let count_p1 = data.count.dark;
+    let count_p2 = data.count.light;
+    if (empty != 0 && count_p1 != 0 && count_p2 != 0) {
+      let board = data.board;
+      let turn = data.turn;
+      let skip = data.skip;
+      iterateGame(board, count_p1, count_p2);
 
-    if (turn == CURRENTUSER.username && skip != CURRENTUSER.username) {
-      validate_position(curr_player_dot,gameboard.data_dots) == false ? pass_p1 = true : pass_p1 = false 
+      if (turn == CURRENTUSER.username && skip != CURRENTUSER.username) {
+        validate_position(curr_player_dot,gameboard.data_dots) == false ? pass_p1 = true : pass_p1 = false 
 
-      let cells = document.getElementsByClassName("cell");
-      let candidate_dots  = document.getElementsByClassName("dotplace"); 
-      for (let i = 0; i < cells.length; i++) {
-        cells[i].onclick = function() {
-          if (cells[i].firstElementChild.className == "dotplace") {
-            let index = -1;
-            let cell_index = -1;
-            for (let j = 0; j < candidate_dots.length; j++) {
-              if (candidate_dots[j].parentElement.id == cells[i].id) {
-                index = j;
-                cell_index = i;
-                break;
+        let cells = document.getElementsByClassName("cell");
+        let candidate_dots  = document.getElementsByClassName("dotplace"); 
+        for (let i = 0; i < cells.length; i++) {
+          cells[i].onclick = function() {
+            if (cells[i].firstElementChild.className == "dotplace") {
+              let index = -1;
+              let cell_index = -1;
+              for (let j = 0; j < candidate_dots.length; j++) {
+                if (candidate_dots[j].parentElement.id == cells[i].id) {
+                  index = j;
+                  cell_index = i;
+                  break;
+                }
               }
-            }
-            if (index >= 0 && !pass_p1) {
-              let cell = candidate_dots[index].parentElement;
+              if (index >= 0 && !pass_p1) {
+                let cell = candidate_dots[index].parentElement;
 
-              let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
-              flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 0);
-              clear_board(candidate_dots);
-              
-              let move = findMove(cell_index);
-              othelloService.notify({
-                'nick': CURRENTUSER.username,
-                'pass': CURRENTUSER.password,
-                'game': othelloService.game,
-                'move': move
-              }); 
+                let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
+                flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 0);
+                clear_board(candidate_dots);
+
+                let move = findMove(cell_index);
+                othelloService.notify({
+                  'nick': CURRENTUSER.username,
+                  'pass': CURRENTUSER.password,
+                  'game': othelloService.game,
+                  'move': move
+                }); 
+              }
             }
           }
         }
+      } else if (skip == CURRENTUSER.username) {
+        othelloService.notify({
+          'nick': CURRENTUSER.username,
+          'pass': CURRENTUSER.password,
+          'game': othelloService.game,
+          'move': null
+        });
       }
-    } else if (skip == CURRENTUSER.username) {
-      othelloService.notify({
-        'nick': CURRENTUSER.username,
-        'pass': CURRENTUSER.password,
-        'game': othelloService.game,
-        'move': null
-      });
-    }
-    current_pl.innerHTML == "Black" ? current_pl.innerHTML = "White" : current_pl.innerHTML = "Black"
-  } else {
-    if (empty == 0 && winner == null) {
-      alert("Tie!");
+      (current_pl.innerHTML == "Black" && skip_change == false) ? current_pl.innerHTML = "White" : current_pl.innerHTML = "Black"
+      skip_change = false;
     } else {
-      alert(winner+" won!");
+      if (empty == 0 && winner === undefined) {
+        alert("Tie!");
+      } else {
+        alert(winner+" won!");
+      }
+      othelloService.events.close();
+      player_color.checked = true;
+      pl2_checked.checked = false;
     }
+  } else {
+    alert(winner+" won!");
     othelloService.events.close();
+    player_color.checked = true;
+    pl2_checked.checked = false;
+    window.location.reload();
   }
 }
 
