@@ -75,7 +75,7 @@
         <div id="userInformation">
           <i>Welcome: </i> <span id="userUsername"></span><br><br>
           <input type="button" value="Leave Game" onclick="onLeaveGamePress()"><br><br>
-          <input type="button" value="See Rankings" onclick="console.log('YEY')"><br><br>
+          <input type="button" value="See Rankings" onclick="buildRankings()"><br><br>
           <input type="button" value="Logout" onclick="onLogoutUserPress()"><br><br>
         </div>
       </div>
@@ -90,6 +90,20 @@
             </tr>
           </thead>
           <tbody id="HOF_body">
+          </tbody>
+        </table>
+      </div>
+      <div id="ranking">
+        <u>Rankings:</u>
+        <table id="rank_tb">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Victories</th>
+              <th>Games</th>
+            </tr>
+          </thead>
+          <tbody id="rank_body">
 
           </tbody>
         </table>

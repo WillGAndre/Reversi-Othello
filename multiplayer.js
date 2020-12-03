@@ -131,3 +131,48 @@ function iterateGame(board, count_p1, count_p2) {
     }
   }
 }
+
+function buildRankings() {
+  if (document.getElementById("ranking").style.display == "none") {
+    let ranking = othelloService.ranking();
+    let tableBody = document.getElementById("rank_body");
+    while (tableBody.firstChild) {
+      tableBody.removeChild(tableBody.firstChild);
+    }
+    ranking.then(function(data) {
+      for (let i = 0; i < 10; i++) {
+        tableBody.appendChild((new RankingsRow(data.ranking[i].nick, data.ranking[i].victories, data.ranking[i].games)).toHTMLRow());
+      }
+    });
+
+    document.getElementById("HOF").style.display = "none";
+    document.getElementById("ranking").style.display = "grid";
+  } else {
+    alert("Rankings already generated");
+  }
+}
+
+function RankingsRow(username,victories,games) {
+  this.username = username;
+  this.victories = victories;
+  this.games = games;
+
+  this.toHTMLRow = function() {
+    let ret = document.createElement("tr");
+    let tableCell;
+
+    tableCell = document.createElement("td");
+		tableCell.textContent = this.username;
+		ret.appendChild(tableCell);
+
+		tableCell = document.createElement("td");
+		tableCell.textContent = this.victories;
+		ret.appendChild(tableCell);
+
+		tableCell = document.createElement("td");
+		tableCell.textContent = this.games;
+		ret.appendChild(tableCell);
+
+		return ret;
+  }
+}

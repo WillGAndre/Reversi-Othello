@@ -113,7 +113,7 @@ body {
   flex-direction: column;
 }
 
-#HOF {
+#HOF, #ranking {
   position: absolute;
   text-align: center;
   width: 62%;
@@ -124,16 +124,27 @@ body {
   margin-left: 35%;
 }
 
-#HOF_tb {
+#HOF_tb, #rank_tb {
   margin-top: -17%;
   margin-left: 10%;
   margin-bottom: -16%;
 }
 
-#HOF_body {
+#rank_tb {
+  margin-left: -5%;
+  font-size: x-small;
+}
+
+#HOF_body, #rank_body {
   margin-top: -10em;
   text-align: center;
 }
+
+#ranking {
+  font-size: small;
+  display: none;
+}
+
 
 /*-------------------------------------------------------------------------*/
 
@@ -209,8 +220,3 @@ body {
 }
 
 /*-------------------------------------------------------------------------*/
-
-#update_frame {
-  width: 90%;
-  height: 28%;
-}

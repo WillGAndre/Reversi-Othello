@@ -68,6 +68,8 @@ function onLogoutUserPress() {
 			window.location.reload();
 		});
 	}
+	document.getElementById("HOF").style.display = "grid";
+	document.getElementById("ranking").style.display = "none";
 }
 
 function onLeaveGamePress(){
