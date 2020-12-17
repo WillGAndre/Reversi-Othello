@@ -113,7 +113,7 @@ body {
   flex-direction: column;
 }
 
-#HOF, #ranking {
+#HOF {
   position: absolute;
   text-align: center;
   width: 62%;
@@ -122,6 +122,18 @@ body {
   border: 0.125em dotted;
   margin-top: 0.9375em;
   margin-left: 35%;
+}
+
+#ranking {
+  position: absolute;
+  text-align: center;
+  width: 62%;
+  height: 85%;
+  border: 0.125em dotted;
+  margin-top: 0.9375em;
+  margin-left: 35%;
+  font-size: small;
+  display: none;
 }
 
 #HOF_tb, #rank_tb {
@@ -138,11 +150,6 @@ body {
 #HOF_body, #rank_body {
   margin-top: -10em;
   text-align: center;
-}
-
-#ranking {
-  font-size: small;
-  display: none;
 }
 
 

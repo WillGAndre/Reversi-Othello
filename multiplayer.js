@@ -1,9 +1,3 @@
-/*
-
-  Fix current player bug (!!!)
-  Fix validate positions bug (!!!)
-
-*/
 let pass_p1 = false;
 let skip_change = true;
 
@@ -133,7 +127,6 @@ function iterateGame(board, count_p1, count_p2) {
 }
 
 function buildRankings() {
-  if (document.getElementById("ranking").style.display == "none") {
     let ranking = othelloService.ranking();
     let tableBody = document.getElementById("rank_body");
     while (tableBody.firstChild) {
@@ -147,9 +140,6 @@ function buildRankings() {
 
     document.getElementById("HOF").style.display = "none";
     document.getElementById("ranking").style.display = "grid";
-  } else {
-    alert("Rankings already generated");
-  }
 }
 
 function RankingsRow(username,victories,games) {
