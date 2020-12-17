@@ -72,31 +72,26 @@ window.onload = function() {
             }
             if (index >= 0 && !pass_p1) {  // Player 1 plays
               let cell = candidate_dots[index].parentElement;
-
-              let arr_dots = get_array_dots(cells);
               let index_dot = Array.prototype.slice.call(cells).indexOf(cell);
               flip_enemy(gameboard.data_dots, index_dot, curr_player_dot, 1);
-              clear_board(candidate_dots);
-              player_counter++;
-            } else if (pass_p1) {   // Player 1 passes round (can't play)
-              player_counter++;
-              clear_board(candidate_dots);
-            }
+            } 
 
-            // Increment counter (game flow), validate new positions and check if game is over
+            player_counter++;
+            clear_board(candidate_dots);
             player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
             validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p2 = true : pass_p2 = false
+            
             check_win(gameboard.data_dots,pass_p1,pass_p2,candidate_dots);
 
             if (!pass_p2) {  // Player 2 plays
               player2_move(gameboard.data_dots,candidate_dots);
-            } else if (pass_p2){  // Player 2 passes round
-              player_counter++;
-              player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
-              clear_board(candidate_dots);
-            }
+            } 
 
+            player_counter++;
+            clear_board(candidate_dots);
+            player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
             validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
+            
             if (check_win_flag)
               check_win(gameboard.data_dots,pass_p1,pass_p2,candidate_dots);
           }
@@ -228,9 +223,6 @@ function player2_move(board,candidate_dots) {
 
   board[pos].className = curr_player_dot;
   flip_enemy(board,pos,curr_player_dot,1);
-  clear_board(candidate_dots);
-  player_counter++;
-  player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
 }
 
 /*
@@ -421,7 +413,7 @@ function valid_pos_all(board,friendly,pos,i,type) {
   switch (type) {
     case 1:       // Verify upper
         pos -= i;
-        while (pos >= 0) {
+        while (pos >= 0 && board[pos] != undefined) {
           if (board[pos].className == friendly) {flag_found = true; break;}
           if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
           pos -= i;
@@ -429,7 +421,7 @@ function valid_pos_all(board,friendly,pos,i,type) {
         break;
     case 2:       // Verify lower
         pos += i;
-        while (pos < 64) {
+        while (pos <= 63 && board[pos] != undefined) {
           if (board[pos].className == friendly) {flag_found = true; break;}
           if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
           pos += i;
@@ -439,7 +431,7 @@ function valid_pos_all(board,friendly,pos,i,type) {
         let current_line = lookup_line.get(pos);
         pos += i;
         let next_line = lookup_line.get(pos);
-        while (current_line == next_line && board[pos] != undefined) {
+        while (pos <= 63 && current_line == next_line && board[pos] != undefined) {
           if (board[pos].className == friendly) {flag_found = true; break;}
           if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
           pos += i;
@@ -450,7 +442,7 @@ function valid_pos_all(board,friendly,pos,i,type) {
         let current_lin = lookup_line.get(pos);
         pos -= i;
         let lst_line = lookup_line.get(pos);
-        while (current_lin == lst_line && board[pos] != undefined) {
+        while (pos >= 0 && current_lin == lst_line && board[pos] != undefined) {
           if (board[pos].className == friendly) {flag_found = true; break;}
           if (board[pos].className != "dotp1" && board[pos].className != "dotp2") {break;}
           pos -= i;
@@ -509,7 +501,7 @@ function flip_all(board, friendly, enemy, pos, i, score, flg_score, type) {
         break;
     case 2:       // Flip lower
         pos += i;
-        while (pos < 64 && board[pos].className != friendly) {
+        while (pos <= 63 && board[pos].className != friendly) {
           if (board[pos].className == enemy) {
             board[pos].className = friendly;
             if (flg_score==1)
@@ -522,7 +514,7 @@ function flip_all(board, friendly, enemy, pos, i, score, flg_score, type) {
         let current_line = lookup_line.get(pos);
         pos += i;
         let next_line = lookup_line.get(pos);
-        while (current_line == next_line && board[pos].className != friendly) {
+        while (pos <= 63 && current_line == next_line && board[pos].className != friendly) {
           if (board[pos].className == enemy) {
             board[pos].className = friendly;
             if (flg_score==1)
@@ -536,7 +528,7 @@ function flip_all(board, friendly, enemy, pos, i, score, flg_score, type) {
         let current_lin = lookup_line.get(pos);
         pos -= i;
         let lst_line = lookup_line.get(pos);
-        while (current_lin == lst_line && board[pos].className != friendly) {
+        while (pos >= 0 && current_lin == lst_line && board[pos].className != friendly) {
           if (board[pos].className == enemy) {
             board[pos].className = friendly;
             if (flg_score==1)

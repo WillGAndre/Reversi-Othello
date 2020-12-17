@@ -1,15 +1,15 @@
 /**
- * In order to implement some sort of user management, we use the localStorage.
- * The usage of localStorage is as follows:
+ * In order to implement some sort of user management, we use the sessionStorage.
+ * The usage of sessionStorage is as follows:
  *  	users - This will store as a string, all users that once logged in the site.
  *  	currentUser - This will store as a string, the current user. Like a login "remember me" is set to true.
  */
 
  /**
   * Some points about the authentication:
-  * - We know that it isn't secure to store the user password in the localStorage but we wanted to implement some sort of login "remember me".
+  * - We know that it isn't secure to store the user password in the sessionStorage but we wanted to implement some sort of login "remember me".
   * An alternative would be to create a cockie with expiration time and in the backend we would validate it. But we don't have access to backend.
-  * - We thought about what happens if the user changes password. The localStorage would not be updated... This point is a consequence of the other
+  * - We thought about what happens if the user changes password. The sessionStorage would not be updated... This point is a consequence of the other
   * but since it isn't supposed to exist such functionality, it will not be a problem.
   */
 
@@ -90,7 +90,7 @@ function onLeaveGamePress(){
 function buildHOFTableBody() {
 	let scores = [];
 	// Sorting all the existing scores in descendant order
-	JSON.parse(localStorage.getItem("users")).forEach(x => x.scores.forEach(y => scores.push({
+	JSON.parse(sessionStorage.getItem("users")).forEach(x => x.scores.forEach(y => scores.push({
 		username: x.username,
 		score: y
 	})));
@@ -110,19 +110,19 @@ function buildHOFTableBody() {
 /**
  * Private functions
  */
-// This funtion will validate if the localStorage has already been used and initialize it if necessary.
+// This funtion will validate if the sessionStorage has already been used and initialize it if necessary.
 function _initializeAuthentication() {
 	//Define local storage basis
 	let initialUsers = [new User("guest", "")];
-	if (!localStorage.getItem("users")) {
-		localStorage.setItem("users", JSON.stringify(initialUsers));
+	if (!sessionStorage.getItem("users")) {
+		sessionStorage.setItem("users", JSON.stringify(initialUsers));
 	}
-	if (!localStorage.getItem("currentUser")) {
-		localStorage.setItem("currentUser", JSON.stringify(initialUsers[0]));
+	if (!sessionStorage.getItem("currentUser")) {
+		sessionStorage.setItem("currentUser", JSON.stringify(initialUsers[0]));
 	}
 
 	// Define default CURRENTUSER
-	let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+	let currentUser = JSON.parse(sessionStorage.getItem("currentUser"));
 	// _setCurrentUser(currentUser);
 
 	// Hide user information
@@ -147,7 +147,7 @@ function _initializeAuthentication() {
 }
 
 function _registerSuccess(username, password) {
-	let users = JSON.parse(localStorage.getItem("users"));
+	let users = JSON.parse(sessionStorage.getItem("users"));
 
 	let userIndex = users.findIndex(x => x.username === username);
 	let user = users[userIndex];
@@ -157,7 +157,7 @@ function _registerSuccess(username, password) {
 	} else { // otherwise
 		_setCurrentUser(new User(username, password));
 		users.push(CURRENTUSER);
-		localStorage.setItem("users", JSON.stringify(users));
+		sessionStorage.setItem("users", JSON.stringify(users));
 	}
 	loginSuccess();
 }
@@ -166,11 +166,11 @@ function _setCurrentUser(user) {
 	CURRENTUSER = new User(user.username, user.password);
 	CURRENTUSER.totalPoints = user.totalPoints;
 	CURRENTUSER.scores = user.scores;
-	localStorage.setItem("currentUser", JSON.stringify(CURRENTUSER));
+	sessionStorage.setItem("currentUser", JSON.stringify(CURRENTUSER));
 }
 
 function _getGuestUser() {
-	let users = JSON.parse(localStorage.getItem("users"));
+	let users = JSON.parse(sessionStorage.getItem("users"));
 	let userIndex = users.findIndex(x => x.username === "guest");
 	let user = users[userIndex];
 
@@ -225,14 +225,14 @@ function User(username, password) {
 		this.scores.push(new Score(points, new Date().toISOString()));
 
 		// Update Local Storage
-		let users = JSON.parse(localStorage.getItem("users"));
+		let users = JSON.parse(sessionStorage.getItem("users"));
 		let userIndex = users.findIndex(x => x.username === this.username);
 
 		users[userIndex] = this;
 		CURRENTUSER = this;
 
-		localStorage.setItem("users", JSON.stringify(users));
-		localStorage.setItem("currentUser", JSON.stringify(this));
+		sessionStorage.setItem("users", JSON.stringify(users));
+		sessionStorage.setItem("currentUser", JSON.stringify(this));
 
 		buildHOFTableBody();
 	}
