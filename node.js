@@ -4,7 +4,11 @@
     Notes:
     -> /ranking (DONE!)
         GET method, returns array with static values
+<<<<<<< HEAD
     -> /register (DONE! Need to test with persistent file)
+=======
+    -> /register (Not working, returns status 400 due to undefined values of nick and/or pass)
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
         POST method - 1. Register in object indexed by nick
                       2. if nick exists check password, if not add password
                       3. serialize object altered in file
@@ -12,7 +16,11 @@
 */  
 /*
     For testing /register 
+<<<<<<< HEAD
     curl -H "Content-Type: application/json" -d '{nick: "gui",password: 123}' http://localhost:8008/register
+=======
+    curl -H "Content-Type: application/json" -d '{"nick":"gui","password":"123"}' http://localhost:8008/register
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
 
 */
 
@@ -21,7 +29,10 @@ const port = 8008;
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
+<<<<<<< HEAD
 const { Console } = require('console');
+=======
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
 
 const headers = {
     plain: {
@@ -34,6 +45,7 @@ const headers = {
 http.createServer(function (request, response) {
     const parsedUrl = url.parse(request.url,true);
     const pathName = parsedUrl.pathname;
+<<<<<<< HEAD
     let return_flg = 0;     // 1 -> ranking | 2 -> register
 
     let answer = {status: 200, data: {}, rankings: {}};
@@ -57,6 +69,17 @@ http.createServer(function (request, response) {
                 }
             });
             request.on('error', (err) => { console.log(err.message); answer.status = 400; })
+=======
+    // const pathQuery = parsedUrl.query;
+
+    let answer = {status: {}, data: {}, rankings: {}};
+    switch(pathName) {
+        case '/ranking':
+            answer = handleRanking();
+            break;
+        case '/register':
+            answer = handleRegister(request);
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
             break;
         default:
             answer.status = 404;
@@ -67,6 +90,7 @@ http.createServer(function (request, response) {
         answer.status = 200;
     }
     response.writeHead(answer.status, headers['plain']);
+<<<<<<< HEAD
     switch (return_flg) {
         case 1:
             response.write(JSON.stringify(answer.rankings));
@@ -90,6 +114,33 @@ function handleRegister(nick,pass) {
 
     let dataFromFile;
     fs.readFile('dataFile.txt', function(err,dataFile) {
+=======
+    response.write(JSON.stringify(answer));
+    response.end();
+}).listen(port);
+
+function handleRegister(request) {
+    let body = '';
+    let data = {};
+    request.on('data', (chunk) => { body += chunk; })
+    request.on('end', () => {
+        try { data = JSON.parse(body); }
+        catch(err) { console.log(err); answer.status = 400; }
+    })
+    request.on('error', (err) => { console.log(err.message); answer.status = 400; })
+
+    let nick = data.nick;
+    let pass = data.pass;
+    let answer = {data: {}, status: 0};
+
+    if (nick === undefined || pass === undefined) {
+        answer.status = 400;
+        return answer;
+    }
+
+    let dataFromFile;
+    fs.open('dataFile.txt', 'r', function (err,dataFile) {  // Tries to open file
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
         if (err) {
             throw err;
         } else {
@@ -98,6 +149,7 @@ function handleRegister(nick,pass) {
     });
 
     if (dataFromFile === undefined) {   // If file doesnt exist, create new one
+<<<<<<< HEAD
         fs.writeFile('dataFile.txt',JSON.stringify(wr_data),(err) => {
             if (err) 
                 throw err;
@@ -106,10 +158,63 @@ function handleRegister(nick,pass) {
             }
         });
     } else {    // file exists   
+=======
+        fs.writeFile('dataFile.txt',JSON.stringify(data),(err) => {
+            if (err) throw err;
+        });
+    } else {    
         let user_found = false;
         if (dataFromFile.nick == nick) {
             user_found = true;
         } else {
+            fs.writeFile('dataFile.txt',JSON.stringify(data),(err) => {
+                if (err) throw err;
+            });
+            answer.status = 200;
+        }
+        if (user_found) {
+            if (dataFromFile.pass == pass) {
+                answer.status = 200;
+            } else {
+                answer.status = 401;
+            }
+            return answer;
+        }
+    }
+    return answer;
+}
+
+/*
+function handleRegister(data) {
+    let nick = data.nick;
+    let pass = data.pass;
+    let answer = {data: {}, status: 0};
+
+    if (nick === undefined || pass === undefined) {
+        answer.status = 400;
+        return answer;
+    }
+
+    let dataFromFile;
+    fs.open('dataFile.txt', 'r', function (err,dataFile) {  // Tries to open file
+        if (err) {
+            throw err;
+        } else {
+            dataFromFile = JSON.parse(dataFile.toString());
+        }
+    });
+
+    if (dataFromFile === undefined) {   // If file doesnt exist, create new one
+        fs.writeFile('dataFile.txt',JSON.stringify(data),(err) => {
+            if (err) throw err;
+        });
+    } else {    
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
+        let user_found = false;
+        if (dataFromFile.nick == nick) {
+            user_found = true;
+        } else {
+<<<<<<< HEAD
             fs.writeFile('dataFile.txt',JSON.stringify(wr_data),(err) => {
                 if (err) throw err;
             });
@@ -125,6 +230,25 @@ function handleRegister(nick,pass) {
     }
     return status;
 }
+=======
+            fs.writeFile('dataFile.txt',JSON.stringify(data),(err) => {
+                if (err) throw err;
+            });
+            answer.status = 200;
+        }
+        if (user_found) {
+            if (dataFromFile.pass == pass) {
+                answer.status = 200;
+            } else {
+                answer.status = 401;
+            }
+            return answer;
+        }
+    }
+    return answer;
+}
+*/
+>>>>>>> 020bd7cc94be1ec9965bcd63fd2f36820426fab6
 
 function handleRanking() {
     let answer = {rankings: [{}], status: 0};
