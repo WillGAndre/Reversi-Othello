@@ -12,7 +12,7 @@
 */  
 /*
     For testing /register 
-    curl -H "Content-Type: application/json" -d '{"nick":"gui","password":"123"}' http://localhost:8008/register
+    curl -H "Content-Type: application/json" -d '{nick: "gui",password: 123}' http://localhost:8008/register
 
 */
 
@@ -80,6 +80,7 @@ http.createServer(function (request, response) {
 }).listen(port);
 
 function handleRegister(nick,pass) {
+    let usrs = [];
     let wr_data = {nick: nick, pass: pass};
     let status = 200;
 
@@ -87,41 +88,31 @@ function handleRegister(nick,pass) {
         status = 400;
     }
 
-    let dataFromFile;
-    fs.readFile('dataFile.txt', function(err,dataFile) {
-        if (err) {
-            throw err;
-        } else {
-            dataFromFile = JSON.parse(dataFile.toString());
+   fs.readFile('./dataFile.json', function(err,data) {
+        if (err) {              // File doesnt exist
+            usrs.push(wr_data);
+            fs.writeFile('./dataFile.json',JSON.stringify(usrs),(err) => {
+                if (err) throw err;
+            });
+        } else {                // File exists
+            usrs = JSON.parse(data.toString());
+            for (let i = 0; i < usrs.length; i++) {
+                let usr = usrs[i];
+                if (usr.nick === nick) {
+                    if (usr.pass === pass) {
+                        return 200;
+                    } else {
+                        return 401;
+                    }
+                }
+            }
+            usrs.push(wr_data);
+            fs.writeFile('./dataFile.json',JSON.stringify(usrs),(err) => {
+                if (err) throw err;
+            });
         }
     });
 
-    if (dataFromFile === undefined) {   // If file doesnt exist, create new one
-        fs.writeFile('dataFile.txt',JSON.stringify(wr_data),(err) => {
-            if (err) 
-                throw err;
-            else {
-                status = 200;
-            }
-        });
-    } else {    // file exists   
-        let user_found = false;
-        if (dataFromFile.nick == nick) {
-            user_found = true;
-        } else {
-            fs.writeFile('dataFile.txt',JSON.stringify(wr_data),(err) => {
-                if (err) throw err;
-            });
-            status = 200;
-        }
-        if (user_found) {
-            if (dataFromFile.pass == pass) {
-                status = 200;
-            } else {
-                status = 401;
-            }
-        }
-    }
     return status;
 }
 
