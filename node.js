@@ -4,11 +4,26 @@
     Notes:
     -> /ranking (DONE!)
         GET method, returns array with static values
-    -> /register (DONE!)
+    -> /register (DONE! Need to test with persistent file)
         POST method - 1. Register in object indexed by nick
                       2. if nick exists check password, if not add password
                       3. serialize object altered in file
-                      4. init object from file when booting 
+                      -> init object from file when booting 
+    -> /join (Not working, returning game="" and color="")
+        POST method - 1. Recieve nick and pass
+                      2. Check if file gameQueue.json exists
+                      3. if not create file/add usr to Queue *1,
+                         else get contents from file
+                                -> file contains 1 usr *2,
+                                -> otherwise throw error
+                      
+                        *1 - this usr is "dark" , attribute hash from group number to json in file and send:
+                                {"game": *hash*,
+                                "color": "dark" }
+                        
+                        *2 - this usr is "light" , check hash from file with new hash and send...
+
+
 */  
 /*
     For testing /register 
@@ -21,6 +36,7 @@ const port = 8008;
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const headers = {
     plain: {
@@ -35,19 +51,35 @@ http.createServer(function (request, response) {
     const pathName = parsedUrl.pathname;
     let return_flg = 0;     // 1 -> ranking | 2 -> register
 
-    let answer = {status: 200, data: {}, rankings: {}};
+    let answer = {status: 200, data: {}, rankings: {}, game: "", color: ""};
     switch(pathName) {
-        case '/ranking':
+        case '/join':
             return_flg = 1;
-            answer = handleRanking();
-            break;
-        case '/register':
-            return_flg = 2;
             let body = '';
-            request.on('data', function (chunk) { body += chunk; });
+            request.on('data', function(chunk) { body+= chunk; });
             request.on('end', function() {
                 try { 
                     let data = JSON.parse(body);
+                    answer = handleJoin(data.nick, data.pass, data.group);
+                } 
+                catch(err) {
+                    console.log(err.message);  
+                    answer.status = 400; 
+                }
+            });
+            request.on('error', (err) => { console.log(err.message); answer.status = 400;})
+            break;
+        case '/ranking':
+            return_flg = 2;
+            answer = handleRanking();
+            break;
+        case '/register':
+            return_flg = 3;
+            let new_body = '';
+            request.on('data', function (chunk) { new_body += chunk; });
+            request.on('end', function() {
+                try { 
+                    let data = JSON.parse(new_body);
                     answer.status = handleRegister(data.nick, data.pass);
                 } 
                 catch(err) {
@@ -68,9 +100,13 @@ http.createServer(function (request, response) {
     response.writeHead(answer.status, headers['plain']);
     switch (return_flg) {
         case 1:
-            response.write(JSON.stringify(answer.rankings));
+            let res = {game: answer.game, color: answer.color};
+            response.write(JSON.stringify(res))
             break;
         case 2:
+            response.write(JSON.stringify(answer.rankings));
+            break;
+        case 3:
             response.write(JSON.stringify(answer.data));
             break;
         default:
@@ -78,6 +114,25 @@ http.createServer(function (request, response) {
     }
     response.end();
 }).listen(port);
+
+function handleJoin(nick,pass,group) {
+    // (Optional) Check if usr is registered if not throw error 
+    let answer = {status: 200, data: {}, rankings: {}, game: "", color: ""};
+    fs.readFile('./gameQueue.json', function(err,data) {
+        if (err) {
+            // create hash and return hash and color , create update instance
+
+            let nw_data = "";
+            if (group === 33) {
+                nw_data = "33";
+            }
+            answer.game = crypto.createHash('md5').update(nw_data).digest("hex");
+            answer.color = "black";
+            //console.log(answer.game);
+        } 
+    });
+    return answer;
+}
 
 function handleRegister(nick,pass) {
     let usrs = [];
@@ -131,3 +186,47 @@ function handleRanking() {
     {"nick":"duarte","victories":144,"games":236}];
     return answer;
 }
+
+/*
+function handleRegister(nick,pass) {
+    let wr_data = {nick: nick, pass: pass};
+    let status = 200;
+
+    if (nick === undefined || pass === undefined) {
+        status = 400;
+    }
+
+    let dataFromFile;
+    fs.readFile('./dataFile.json', function(err,data) {
+        if (err) {
+            console.log("File doesnt exist");
+            fs.writeFile('./dataFile.json',JSON.stringify(wr_data) + "\n",(err) => {
+                if (err) throw err;
+            });
+            status = 200;
+        } else {
+            console.log("File already exists");
+            dataFromFile = JSON.parse(data.toString());
+
+            let user_found = false;
+            if (dataFromFile.nick === nick) {
+                user_found = true;
+            } else {
+                fs.writeFile('./dataFile.json',JSON.stringify(wr_data) + "\n",{flag: 'a+'},(err) => {
+                    if (err) throw err;
+                });
+                status = 200;
+            }
+            if (user_found) {
+                if (dataFromFile.pass === pass) {
+                    status = 200;
+                } else {
+                    status = 401;
+                }
+            }
+        }
+    });
+    console.log("status ", status);
+    return status;
+}
+*/
