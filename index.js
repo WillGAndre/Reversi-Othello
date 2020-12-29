@@ -53,9 +53,11 @@ window.onload = function() {
     // Player color event listener
     player_color.addEventListener("input", function() {
       if (!player_color.checked || player_color.checked) {
-          player2_move(gameboard.data_dots,candidate_dots);
-          validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p1 = true : pass_p1 = false
-          check_win(gameboard.data_dots,pass_p1,pass_p2);
+        player2_move(gameboard.data_dots,candidate_dots);
+        player_counter++;
+        clear_board(candidate_dots);
+        player_counter % 2 == 0 ? (curr_player_dot="dotp2",current_pl.innerHTML = "White") : (curr_player_dot="dotp1",current_pl.innerHTML = "Black")
+        validate_position(curr_player_dot,gameboard.data_dots) == 0 ? pass_p2 = true : pass_p2 = false
       }
       color_player == "black" ? color_player = "white" : color_player = "black"
     }, "false");
