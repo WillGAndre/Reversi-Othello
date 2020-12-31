@@ -24,7 +24,7 @@
                         *2 - this usr is "light" , check hash from file with new hash and send...
 
 
-*/  
+*/
 /*
     For testing /register 
     curl -H "Content-Type: application/json" -d '{nick: "gui",password: 123}' http://localhost:8008/register
@@ -38,53 +38,64 @@ const url = require('url');
 const fs = require('fs');
 const crypto = require('crypto');
 
+const games = require('./update_module.js');
+
 const headers = {
     plain: {
         'Content-Type': 'application/javascript',
         'Cache-Control': 'no-cache',
-        'Access-Control-Allow-Origin': '*' 
+        'Access-Control-Allow-Origin': '*'
+    },
+    sse: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+        'Connection': 'keep-alive'
     }
 };
 
 http.createServer(function (request, response) {
-    const parsedUrl = url.parse(request.url,true);
+    const parsedUrl = url.parse(request.url, true);
     const pathName = parsedUrl.pathname;
+    const query = parsedUrl.query;
     let return_flg = 0;     // 1 -> ranking | 2 -> register
 
-    let answer = {status: 200, data: {}, rankings: {}, game: "", color: ""};
-    switch(pathName) {
+    let answer = { status: 200, data: {}, rankings: {}, game: "", color: "" };
+    switch (pathName) {
         case '/join':
-            return_flg = 1;
             let body = '';
-            request.on('data', function(chunk) { body+= chunk; });
-            request.on('end', function() {
-                try { 
-                    let data = JSON.parse(body);
-                    answer = handleJoin(data.nick, data.pass, data.group);
-                } 
-                catch(err) {
-                    console.log(err.message);  
-                    answer.status = 400; 
+            request.on('data', function (chunk) { body += chunk; });
+            request.on('end', function () {
+                try {
+                    handleJoin(response, JSON.parse(body));
+                }
+                catch (err) {
+                    console.log(err.message);
+                    answer.status = 400;
                 }
             });
-            request.on('error', (err) => { console.log(err.message); answer.status = 400;})
+            request.on('error', (err) => { console.log(err.message); answer.status = 400; })
+            break;
+        case '/update':
+            answer = handleUpdate(query);
+            answer.status = 200;
             break;
         case '/ranking':
-            return_flg = 2;
+            return_flg = 1;
             answer = handleRanking();
             break;
         case '/register':
-            return_flg = 3;
+            return_flg = 2;
             let new_body = '';
             request.on('data', function (chunk) { new_body += chunk; });
-            request.on('end', function() {
-                try { 
+            request.on('end', function () {
+                try {
                     let data = JSON.parse(new_body);
                     answer.status = handleRegister(data.nick, data.pass);
-                } 
-                catch(err) {
-                    console.log(err.message);  
-                    answer.status = 400; 
+                }
+                catch (err) {
+                    console.log(err.message);
+                    answer.status = 400;
                 }
             });
             request.on('error', (err) => { console.log(err.message); answer.status = 400; })
@@ -97,56 +108,90 @@ http.createServer(function (request, response) {
     if (answer.status === undefined) {
         answer.status = 200;
     }
-    response.writeHead(answer.status, headers['plain']);
     switch (return_flg) {
         case 1:
-            let res = {game: answer.game, color: answer.color};
-            response.write(JSON.stringify(res))
+            response.writeHead(answer.status, headers['plain']);
+            response.end(JSON.stringify(answer.rankings));
             break;
         case 2:
-            response.write(JSON.stringify(answer.rankings));
-            break;
-        case 3:
-            response.write(JSON.stringify(answer.data));
+            response.writeHead(answer.status, headers['plain']);
+            response.end(JSON.stringify(answer.data));
             break;
         default:
             break;
     }
-    response.end();
+    // response.end();
 }).listen(port);
 
-function handleJoin(nick,pass,group) {
-    // (Optional) Check if usr is registered if not throw error 
-    let answer = {status: 200, data: {}, rankings: {}, game: "", color: ""};
-    fs.readFile('./gameQueue.json', function(err,data) {
-        if (err) {
-            // create hash and return hash and color , create update instance
+function handleUpdate(query) {
+    let nick = query.nick;
+    let game = query.game;
 
-            let nw_data = "";
-            if (group === 33) {
-                nw_data = "33";
-            }
-            answer.game = crypto.createHash('md5').update(nw_data).digest("hex");
-            answer.color = "black";
-            //console.log(answer.game);
-        } 
-    });
-    return answer;
+    let gen_hash = games.searchEntry(nick);
+    console.log("hash ", gen_hash);
+
+    // Generate hash and color of player
+    // Check if hash is valid and if it is associated to the player
+    // if (player.color == "black") then return normal ({})
+    //  else throw error
+    // else if (player.color == "light") then start game (and get game init instance) *1
+    //  else throw error
+
+    // *1
+    //  get game instance
+    //      -> game instance starts when "light" player is added to the gameQueue 
 }
 
-function handleRegister(nick,pass) {
+function handleJoin(response, data) {
+    let hash_in = "";
+    if (data.group === 33)
+        hash_in = "33";
+    fs.readFile('./gameQueue.json', function (err, data_file) {
+        if (err) {
+            let joinRes = { game: crypto.createHash('md5').update(hash_in).digest("hex"), color: "black" };
+            games.addEntry(joinRes.game, data.nick, joinRes.color);
+            fs.writeFile('./gameQueue.json', JSON.stringify(joinRes), (err) => {
+                if (err) {
+                    throw err;
+                }
+                response.writeHead(200, headers['plain']);
+                response.end(JSON.stringify(joinRes));
+            });
+
+            // Testing
+            console.log(games.arr);
+
+        } else {
+            let hashFromFile = JSON.parse(data_file.toString()).game;
+            let joinRes = { game: crypto.createHash('md5').update(hash_in).digest("hex"), color: "light" };
+            if (hashFromFile === joinRes.game) {
+                console.log("Ok");
+            } else { console.log("Dif Hash"); }
+            games.addEntry(joinRes.game, data.nick, joinRes.color);
+            fs.writeFile('./gameQueue.json', JSON.stringify(joinRes), (err) => {
+                if (err) throw err;
+            });
+
+            // Testing
+            console.log(games.arr);
+
+        }
+    });
+}
+
+function handleRegister(nick, pass) {
     let usrs = [];
-    let wr_data = {nick: nick, pass: pass};
+    let wr_data = { nick: nick, pass: pass };
     let status = 200;
 
     if (nick === undefined || pass === undefined) {
         status = 400;
     }
 
-   fs.readFile('./dataFile.json', function(err,data) {
+    fs.readFile('./dataFile.json', function (err, data) {
         if (err) {              // File doesnt exist
             usrs.push(wr_data);
-            fs.writeFile('./dataFile.json',JSON.stringify(usrs),(err) => {
+            fs.writeFile('./dataFile.json', JSON.stringify(usrs), (err) => {
                 if (err) throw err;
             });
         } else {                // File exists
@@ -162,7 +207,7 @@ function handleRegister(nick,pass) {
                 }
             }
             usrs.push(wr_data);
-            fs.writeFile('./dataFile.json',JSON.stringify(usrs),(err) => {
+            fs.writeFile('./dataFile.json', JSON.stringify(usrs), (err) => {
                 if (err) throw err;
             });
         }
@@ -172,61 +217,17 @@ function handleRegister(nick,pass) {
 }
 
 function handleRanking() {
-    let answer = {rankings: [{}], status: 0};
+    let answer = { rankings: [{}], status: 0 };
     answer.status = 200;
-    answer.rankings = [{"nick":"123","victories":350,"games":623},
-    {"nick":"a","victories":263,"games":538},
-    {"nick":"tati123","victories":249,"games":441},
-    {"nick":"adeus","victories":219,"games":350},
-    {"nick":"admin","victories":219,"games":317},
-    {"nick":"netcan","victories":205,"games":414},
-    {"nick":"ola","victories":201,"games":461},
-    {"nick":"Player 1","victories":192,"games":372},
-    {"nick":"Player 2","victories":183,"games":369},
-    {"nick":"duarte","victories":144,"games":236}];
+    answer.rankings = [{ "nick": "123", "victories": 350, "games": 623 },
+    { "nick": "a", "victories": 263, "games": 538 },
+    { "nick": "tati123", "victories": 249, "games": 441 },
+    { "nick": "adeus", "victories": 219, "games": 350 },
+    { "nick": "admin", "victories": 219, "games": 317 },
+    { "nick": "netcan", "victories": 205, "games": 414 },
+    { "nick": "ola", "victories": 201, "games": 461 },
+    { "nick": "Player 1", "victories": 192, "games": 372 },
+    { "nick": "Player 2", "victories": 183, "games": 369 },
+    { "nick": "duarte", "victories": 144, "games": 236 }];
     return answer;
 }
-
-/*
-function handleRegister(nick,pass) {
-    let wr_data = {nick: nick, pass: pass};
-    let status = 200;
-
-    if (nick === undefined || pass === undefined) {
-        status = 400;
-    }
-
-    let dataFromFile;
-    fs.readFile('./dataFile.json', function(err,data) {
-        if (err) {
-            console.log("File doesnt exist");
-            fs.writeFile('./dataFile.json',JSON.stringify(wr_data) + "\n",(err) => {
-                if (err) throw err;
-            });
-            status = 200;
-        } else {
-            console.log("File already exists");
-            dataFromFile = JSON.parse(data.toString());
-
-            let user_found = false;
-            if (dataFromFile.nick === nick) {
-                user_found = true;
-            } else {
-                fs.writeFile('./dataFile.json',JSON.stringify(wr_data) + "\n",{flag: 'a+'},(err) => {
-                    if (err) throw err;
-                });
-                status = 200;
-            }
-            if (user_found) {
-                if (dataFromFile.pass === pass) {
-                    status = 200;
-                } else {
-                    status = 401;
-                }
-            }
-        }
-    });
-    console.log("status ", status);
-    return status;
-}
-*/
