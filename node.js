@@ -100,6 +100,20 @@ http.createServer(function (request, response) {
             });
             request.on('error', (err) => { console.log(err.message); answer.status = 400; })
             break;
+        case '/leave':
+            let body = '';
+            request.on('data', function (chunk) { body += chunk; });
+            request.on('end', function () {
+                try {
+                    handleLeave(response, JSON.parse(body));
+                }
+                catch (err) {
+                    console.log(err.message);
+                    answer.status = 400;
+                }
+            });
+            request.on('error', (err) => { console.log(err.message); answer.status = 400; })
+            break;
         default:
             answer.status = 404;
             break;
@@ -146,36 +160,25 @@ function handleJoin(response, data) {
     let hash_in = "";
     if (data.group === 33)
         hash_in = "33";
-    fs.readFile('./gameQueue.json', function (err, data_file) {
+
+    let game_hash = crypto.createHash('md5').update(hash_in).digest("hex");
+    let game_index = games.arr.findIndex(x => x.game === game_hash);
+    let ret = {
+        game: game_hash
+    }
+    if(game_index === -1){
+        games.addEntry(game_hash, data.nick, "black");
+        ret.color = "black";
+    } else {
+        games.addEntry(game_hash, data.nick, "white");
+        ret.white = "white";
+    }
+    fs.writeFile('./gameQueue.json', JSON.stringify(games.arr), (err) => {
         if (err) {
-            let joinRes = { game: crypto.createHash('md5').update(hash_in).digest("hex"), color: "black" };
-            games.addEntry(joinRes.game, data.nick, joinRes.color);
-            fs.writeFile('./gameQueue.json', JSON.stringify(joinRes), (err) => {
-                if (err) {
-                    throw err;
-                }
-                response.writeHead(200, headers['plain']);
-                response.end(JSON.stringify(joinRes));
-            });
-
-            // Testing
-            console.log(games.arr);
-
-        } else {
-            let hashFromFile = JSON.parse(data_file.toString()).game;
-            let joinRes = { game: crypto.createHash('md5').update(hash_in).digest("hex"), color: "light" };
-            if (hashFromFile === joinRes.game) {
-                console.log("Ok");
-            } else { console.log("Dif Hash"); }
-            games.addEntry(joinRes.game, data.nick, joinRes.color);
-            fs.writeFile('./gameQueue.json', JSON.stringify(joinRes), (err) => {
-                if (err) throw err;
-            });
-
-            // Testing
-            console.log(games.arr);
-
+            throw err;
         }
+        response.writeHead(200, headers['plain']);
+        response.end(JSON.stringify(ret));
     });
 }
 
@@ -230,4 +233,23 @@ function handleRanking() {
     { "nick": "Player 2", "victories": 183, "games": 369 },
     { "nick": "duarte", "victories": 144, "games": 236 }];
     return answer;
+}
+
+function handleLeave(response, data){
+    let ret = {}
+    let hash_in = "";
+    if (data.group === 33)
+        hash_in = "33";
+
+    games.removeEntry(data.game, data.nick);
+    fs.writeFile('./gameQueue.json', JSON.stringify(games.arr), (err) => {
+        if (err) {
+            throw err;
+        }
+        response.writeHead(200, headers['plain']);
+        response.end(JSON.stringify(ret));
+    });
+
+    // Testing
+    console.log(games.arr);
 }
