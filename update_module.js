@@ -1,6 +1,12 @@
 const games = [];
 
-module.exports.addEntry = function(game_hash, usr, clr) { games.push({hash: game_hash,user: usr,color: clr}); }
+module.exports.addEntry = function(game_hash, usr, clr) { 
+    games.push({
+        hash: game_hash, 
+        user: usr,
+        color: clr
+    }); 
+}
 module.exports.removeEntry = function(game_hash, usr) {
     let game_index = games.findIndex(x => {
         x.hash === game_hash &&
