@@ -54,7 +54,23 @@ const headers = {
     }
 };
 
+const are_games_loaded = false;
+
 http.createServer(function (request, response) {
+    // Initialize games queue in case of server reboot
+    if(!are_games_loaded){
+        fs.readFile('./gameQueue.json', function (err, data) {
+            if(!err){
+                let temp_games = JSON.parse(data.toString());
+                for (let i = 0; i < temp_games.length; i++) {
+                    let game = temp_games[i];
+                    games.addEntry(game.hash, game.user, game.color);
+                }
+            }
+        });
+        are_games_loaded = true;
+    }
+
     const parsedUrl = url.parse(request.url, true);
     const pathName = parsedUrl.pathname;
     const query = parsedUrl.query;
