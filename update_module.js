@@ -1,4 +1,4 @@
-const games = [];
+var games = [];
 
 module.exports.addEntry = function(game_hash, usr, clr) { games.push({hash: game_hash,user: usr,color: clr}); }
 module.exports.removeEntry = function(game_hash, usr) {

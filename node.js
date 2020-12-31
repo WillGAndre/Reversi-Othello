@@ -61,9 +61,10 @@ http.createServer(function (request, response) {
     let return_flg = 0;     // 1 -> ranking | 2 -> register
 
     let answer = { status: 200, data: {}, rankings: {}, game: "", color: "" };
+    let body = '';
     switch (pathName) {
         case '/join':
-            let body = '';
+            body = '';
             request.on('data', function (chunk) { body += chunk; });
             request.on('end', function () {
                 try {
@@ -101,7 +102,7 @@ http.createServer(function (request, response) {
             request.on('error', (err) => { console.log(err.message); answer.status = 400; })
             break;
         case '/leave':
-            let body = '';
+            body = '';
             request.on('data', function (chunk) { body += chunk; });
             request.on('end', function () {
                 try {
@@ -162,7 +163,7 @@ function handleJoin(response, data) {
         hash_in = "33";
 
     let game_hash = crypto.createHash('md5').update(hash_in).digest("hex");
-    let game_index = games.arr.findIndex(x => x.game === game_hash);
+    let game_index = games.arr.findIndex(x => x.hash === game_hash);
     let ret = {
         game: game_hash
     }
@@ -170,8 +171,8 @@ function handleJoin(response, data) {
         games.addEntry(game_hash, data.nick, "black");
         ret.color = "black";
     } else {
-        games.addEntry(game_hash, data.nick, "white");
-        ret.white = "white";
+        games.addEntry(game_hash, data.nick, "light");
+        ret.color = "light";
     }
     fs.writeFile('./gameQueue.json', JSON.stringify(games.arr), (err) => {
         if (err) {
@@ -241,6 +242,7 @@ function handleLeave(response, data){
     if (data.group === 33)
         hash_in = "33";
 
+    // Must check for player first in games
     games.removeEntry(data.game, data.nick);
     fs.writeFile('./gameQueue.json', JSON.stringify(games.arr), (err) => {
         if (err) {
